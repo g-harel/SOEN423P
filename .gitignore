@@ -23,3 +23,12 @@
 hs_err_pid*
 /Interface/build/
 /Interface/dist/
+/DEMS-Common/nbproject/private/
+/Client/build/
+/Client/dist/
+/Client/nbproject/private/
+/DEMS-Client/nbproject/private/
+/DEMS-Common/build/
+/DEMS-Common/dist/
+/DEMS-Client/build/
+/DEMS-Client/dist/
