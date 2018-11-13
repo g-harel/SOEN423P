@@ -32,3 +32,6 @@ hs_err_pid*
 /DEMS-Common/dist/
 /DEMS-Client/build/
 /DEMS-Client/dist/
+/FrontEnd/nbproject/private/
+/FrontEnd/build/
+/FrontEnd/dist/
