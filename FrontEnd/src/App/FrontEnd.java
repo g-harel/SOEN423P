@@ -23,6 +23,23 @@
  */
 package App;
 
+import Models.AddressBook;
+import Interface.DEMS.RegionalRecordManipulator;
+import Interface.DEMS.RegionalRecordManipulatorHelper;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Stream;
+import org.omg.CORBA.ORB;
+import org.omg.CORBA.ORBPackage.InvalidName;
+import org.omg.CosNaming.NameComponent;
+import org.omg.CosNaming.NamingContextExt;
+import org.omg.CosNaming.NamingContextExtHelper;
+import org.omg.CosNaming.NamingContextPackage.CannotProceed;
+import org.omg.CosNaming.NamingContextPackage.NotFound;
+import org.omg.PortableServer.POA;
+import org.omg.PortableServer.POAHelper;
+import org.omg.PortableServer.POAManagerPackage.AdapterInactive;
+
 /**
  *
  * @author cmcarthur
@@ -34,8 +51,34 @@ public class FrontEnd {
      */
     public static void main(String[] args) {
         System.out.println("Hello World!");
-        
+
+        if (args.length < 4) {
+            args = Stream.of("-ORBInitialPort", "1050", "-ORBInitialHost", "localhost").toArray(String[]::new);
+        }
+        try {
+            // create and initialize the ORB //// get reference to rootpoa & activate the POAManager
+            ORB orb = ORB.init(args, null);
+            POA rootpoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
+            rootpoa.the_POAManager().activate();
+
+            // LEt's get a reference to the NamingService of CORBA
+            org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");
+            NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
+
+            // get object reference from the servant
+            org.omg.CORBA.Object refFrontend = rootpoa.servant_to_reference(Frontend);
+            RegionalRecordManipulator Href = RegionalRecordManipulatorHelper.narrow(refFrontend);
+            // Create path and bind Frontend reference
+            NameComponent pathFrontend[] = ncRef.to_name(AddressBook.FRONTEND.getShortHandName());
+            ncRef.rebind(pathFrontend, Href);
+
+        } catch (InvalidName | AdapterInactive | org.omg.CosNaming.NamingContextPackage.InvalidName
+                | NotFound | CannotProceed ex) {
+            System.out.println("Failed to start CORBA sub-systems!");
+        }
+        // TODO code application logic here
+
         // TODO code application logic here
     }
-    
+
 }
