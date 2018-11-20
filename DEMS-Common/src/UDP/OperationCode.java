@@ -46,6 +46,19 @@ public enum OperationCode {
     public String toString() {
         return "" + m_Value;
     }
+    
+    public OperationCode toAck(){
+        if( m_Value < 3000 ){
+            switch( this ){
+                case UPDATE_RECORD_INDEX: return ACK_UPDATE_RECORD_INDEX;
+                case GET_RECORD_COUNT: return ACK_GET_RECORD_COUNT;
+                case DOES_RECORD_EXIST: return ACK_DOES_RECORD_EXIST;
+                case TRANSFER_RECORD: return ACK_TRANSFER_RECORD;
+                default: return INVALID;
+            }
+        }
+        return this;
+    }
 
     final private int m_Value;
 
