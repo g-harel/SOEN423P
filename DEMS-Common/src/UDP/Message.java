@@ -46,13 +46,13 @@ public class Message {
     private int m_Port;
 
     public Message(DatagramPacket packet) {
-        
+
         String payload = new String(packet.getData(), 0, packet.getLength());
-        
-        this.m_Code = OperationCode.fromString( payload.substring(0, payload.indexOf("\r\n")) );
+
+        this.m_Code = OperationCode.fromString(payload.substring(0, payload.indexOf("\r\n")));
         payload = payload.substring(payload.indexOf("\r\n") + 2);
         this.m_SeqNum = Integer.valueOf(payload.substring(0, payload.indexOf("\r\n")));
-        this.m_Data = payload.substring(payload.indexOf("\r\n") + 2 );
+        this.m_Data = payload.substring(payload.indexOf("\r\n") + 2);
         this.m_Addr = packet.getAddress();
         this.m_Port = packet.getPort();
     }
@@ -66,11 +66,11 @@ public class Message {
     }
 
     public DatagramPacket getPacket() {
-        String payload = m_Code.toString() + "\r\n" +  String.valueOf(m_SeqNum) +  "\r\n" + m_Data;
+        String payload = m_Code.toString() + "\r\n" + String.valueOf(m_SeqNum) + "\r\n" + m_Data;
         return new DatagramPacket(payload.getBytes(), payload.length(), m_Addr, m_Port);
     }
-    
-    public String getData(){
+
+    public String getData() {
         return m_Data;
     }
 
@@ -83,11 +83,11 @@ public class Message {
         return "Message{" + "code=" + m_Code + ", seq=" + m_SeqNum + ", data=" + m_Data + ", addr=" + m_Addr + ", port=" + m_Port + '}';
     }
 
-	public int getSeqNum() {
-		return m_SeqNum;
-	}
+    public int getSeqNum() {
+        return m_SeqNum;
+    }
 
-	public void setSeqNum(int m_SeqNum) {
-		this.m_SeqNum = m_SeqNum;
-	}
+    public void setSeqNum(int m_SeqNum) {
+        this.m_SeqNum = m_SeqNum;
+    }
 }
