@@ -13,7 +13,7 @@ public interface ISharedHRActions {
 	 * @param firstName
 	 * @param lastName
 	 * @param employeeId: MR12345 must contain 'MR'
-	 * @param mailId
+	 * @param mailID
 	 * @param projects: Projects are sent in this format:  ["P22221|ClientName|ProjectName"]
 	 * @param location: Simply String
 	 * @param authorOfRequest : Could use Employee Id of the manager creating a manager...
@@ -29,8 +29,8 @@ public interface ISharedHRActions {
 		 * @param lastName
 		 * @param employeeIDString createMRecord(String firstName, String lastName, 
 			String employeeID, String mailID, String managerID,  String location)
-		 * @param mailId
-		 * @param ProjectId
+		 * @param mailID
+		 * @param ProjectID
 		 * @return The server returns information to the manager whether the operation was successful or not
 		 */
 	 public boolean createERecord (String firstName, String lastName, String employeeID, String mailID, String projectID, String managerID);
@@ -70,4 +70,12 @@ public interface ISharedHRActions {
 	  * Shut down the entire system...
 	  */
 	 public void shutdown (String managerID);
+	 
+	 /**
+	  * Reset the system because it's corrupted?
+	  * When hardReset is true, reset also storage ?
+	  * @param managerID
+	  * @param hardReset
+	  */
+	 public void reset(String managerID, boolean hardReset);
 }
