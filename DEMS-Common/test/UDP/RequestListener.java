@@ -28,6 +28,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  *
@@ -39,6 +40,8 @@ public class RequestListener implements Runnable {
 
         public void copyMessage(Message msg);
     }
+    
+    public static int TEST_PORT = 35646;
 
     final private Processor m_Handler;
 
@@ -73,7 +76,7 @@ public class RequestListener implements Runnable {
     @Override
     public void run() {
         try {
-            socket = new DatagramSocket(35646);
+            socket = new DatagramSocket(TEST_PORT);
             m_ShouldContinueWorking = true;
         } catch (SocketException ex) {
             m_ShouldContinueWorking = false;
@@ -99,7 +102,9 @@ public class RequestListener implements Runnable {
             Message request = new Message(packet);
 
             String responsePayload = "ERROR";
-            OperationCode responseCode = request.getOpCode().toAck();
+            
+            int randomNum = ThreadLocalRandom.current().nextInt(0, 3) ;
+            OperationCode responseCode = ( randomNum == 0 ) ? request.getOpCode().toAck() : OperationCode.INVALID;
 
             m_Handler.copyMessage(request);
 
