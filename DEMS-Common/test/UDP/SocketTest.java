@@ -23,6 +23,7 @@
  */
 package UDP;
 
+import static UDP.RequestListener.TEST_PORT;
 import java.net.InetAddress;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -55,11 +56,11 @@ public class SocketTest implements RequestListener.Processor {
         m_Listener.Wait();
 
         InetAddress addr = InetAddress.getLoopbackAddress();
-        Message send = new Message(OperationCode.TRANSFER_RECORD, 0, "TESTING", addr, 35646);
+        Message send = new Message(OperationCode.TRANSFER_RECORD, 0, "TESTING", addr, TEST_PORT);
         Socket instance = new Socket();
 
         assertEquals(true, instance.send(send, 10, 1000));
-        
+
         // Make sure capture message was what we sent!
         assertEquals(msg.getOpCode(), send.getOpCode());
         assertEquals(msg.getData(), "TESTING");
@@ -69,17 +70,18 @@ public class SocketTest implements RequestListener.Processor {
     }
 
     @Test
-    public void testSendTimesOut() throws Exception  {
+    public void testSendTimesOut() throws Exception {
         System.out.println("send timeout");
-        
+
         InetAddress addr = InetAddress.getLoopbackAddress();
+
+        // using invalid port 'ensures' we wont get an answer
         Message send = new Message(OperationCode.TRANSFER_RECORD, 0, "TESTING", addr, 46873);
         Socket instance = new Socket();
 
         assertEquals(false, instance.send(send, 5, 500));
-        
     }
-    
+
     @Override
     public void copyMessage(Message msg) {
         this.msg = msg;
