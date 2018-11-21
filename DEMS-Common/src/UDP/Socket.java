@@ -61,6 +61,8 @@ public class Socket {
             if (--retryCounter > 0) {
                 // TO DO: Maybe print for debugging =?
                 return send(msg, retryCounter, timeout);
+            } else {
+                return false;
             }
         }
 
