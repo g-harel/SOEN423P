@@ -25,10 +25,8 @@ package UDP;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.net.MulticastSocket;
 
 /**
  *
@@ -53,7 +51,7 @@ public class RequestListener implements Runnable {
     private boolean m_ShouldContinueWorking;
     private boolean m_ProcessingHasBegun;
 
-    private DatagramSocket m_Socket;
+    private MulticastSocket m_Socket;
 
     public RequestListener(Processor handler, String address, int port) {
         m_Handler = handler;
@@ -111,9 +109,11 @@ public class RequestListener implements Runnable {
     private void createSocket() {
         try {
             InetAddress addr = InetAddress.getByName(m_Address);
-            m_Socket = new DatagramSocket(m_Port, addr);
+            m_Socket = new MulticastSocket(m_Port);
+            m_Socket.joinGroup(addr);
+            
             m_ShouldContinueWorking = true;
-        } catch (SocketException | UnknownHostException ex) {
+        } catch ( IOException ex) {
             m_ShouldContinueWorking = false;
             System.out.println("Failed to create socket due to: " + ex.getMessage());
         }
