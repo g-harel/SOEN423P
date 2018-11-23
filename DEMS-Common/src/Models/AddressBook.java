@@ -42,10 +42,18 @@ public enum AddressBook {
             m_Addr = InetAddress.getLoopbackAddress();
         }
         m_Port = port;
-    }   
+    }
 
 
-    @Override
+    public InetAddress getAddr() {
+        return m_Addr;
+    }
+
+    public int getPort() {
+        return m_Port;
+    }
+
+	@Override
     public String toString() {
         return m_Name;
     }

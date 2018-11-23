@@ -1,0 +1,23 @@
+module Corba {
+    struct Project {
+        string projectId;
+        string clientName;
+        string projectName;
+    };
+
+    interface IFrontEnd {
+        string createMRecord (in string managerID, in string firstName, in string lastName, in long employeeID, in string mailID, in Project project, in string location);
+
+        string createERecord (in string managerID, in string firstName, in string lastName, in long employeeID, in string mailID, in string projectID);
+
+        string getRecordCounts(in string managerID);
+
+        string editRecord (in string managerID, in string recordID, in string fieldName, in string newValue);
+
+        string transferRecord (in string managerID, in string recordID, in string location);
+
+        void softwareFailure(in string managerID);
+        
+        void replicaCrash(in string managerID);
+    };
+};

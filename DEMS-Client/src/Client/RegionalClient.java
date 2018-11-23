@@ -23,15 +23,16 @@
  */
 package Client;
 
-import Interface.DEMS.Project;
-import Interface.DEMS.RegionalRecordManipulator;
-import Interface.DEMS.RegionalRecordManipulatorHelper;
-import Interface.DEMS.RemoteException;
+import Interface.Corba.IFrontEnd;
+import Interface.Corba.IFrontEndHelper;
+import Interface.Corba.Project;
 import Models.AddressBook;
 import Models.Location;
-import Utility.Logger;
+import Utility.LogEntry;
+import Utility.OperationLogger;
+
+import java.io.File;
 import java.io.IOException;
-import org.omg.CORBA.Any;
 import org.omg.CORBA.ORB;
 import org.omg.CosNaming.NamingContextExt;
 import org.omg.CosNaming.NamingContextExtHelper;
@@ -45,56 +46,81 @@ public class RegionalClient {
     final private ORB orb;
     final private String m_HRID;
     final private Location m_Region;
-    final private RegionalRecordManipulator m_Remote;
-    final private Logger m_Logger;
+    final private IFrontEnd m_Remote;
 
     public RegionalClient(ORB orb, String id) throws IOException, Exception {
         this.orb = orb;
-        m_HRID = id;
+        m_HRID = id.toUpperCase();
         m_Region = Location.fromString(id.substring(0, 2));
 
         org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");
         NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
-        m_Remote = (RegionalRecordManipulator) RegionalRecordManipulatorHelper.narrow(ncRef.resolve_str(AddressBook.FRONTEND.getShortHandName()));
-
-        m_Logger = new Logger(m_HRID);
-        m_Logger.Log(m_HRID + " has connected!");
+        m_Remote = IFrontEndHelper.narrow(ncRef.resolve_str(AddressBook.FRONTEND.getShortHandName()));
+        
+        LogEntry logEntry = new LogEntry(m_HRID, "Login", true);
+        addHRLogEntry(logEntry.toString());
     }
 
-    public String createManagerRecord(String firstName, String lastName, int employeeID, String mailID, Project projects, String location) throws RemoteException {
-        return m_Remote.createMRecord(m_HRID, firstName, lastName, employeeID, mailID, projects, location);
+    public String createManagerRecord(String firstName, String lastName, int employeeID, String mailID, Project projects, String location) {
+        String logEntry = m_Remote.createMRecord(m_HRID, firstName, lastName, employeeID, mailID, projects, location);
+        
+        addHRLogEntry(logEntry);
+        return logEntry;
     }
 
-    public String createEmployeeRecord(String firstName, String lastName, int employeeID, String mailID, String projectId) throws RemoteException {
-        return m_Remote.createERecord(m_HRID, firstName, lastName, employeeID, mailID, projectId);
+    public String createEmployeeRecord(String firstName, String lastName, int employeeID, String mailID, String projectId) {
+    	String logEntry = m_Remote.createERecord(m_HRID, firstName, lastName, employeeID, mailID, projectId);
+
+        addHRLogEntry(logEntry);
+        return logEntry;
     }
 
-    public String editRecord(String recordID, String feildName, String newValue) throws RemoteException {
-        Any toPass = orb.create_any();
-        toPass.insert_string(newValue);
-        return m_Remote.editRecord(m_HRID, recordID, feildName, toPass);
-    }
+    public String editRecord(String recordID, String feildName, String newValue) {
+    	String logEntry = m_Remote.editRecord(m_HRID, recordID, feildName, newValue);
 
-    public String editRecord(String recordID, String feildName, int newValue) throws RemoteException {
-        Any toPass = orb.create_any();
-        toPass.insert_long(newValue);
-        return m_Remote.editRecord(m_HRID, recordID, feildName, toPass);
+        addHRLogEntry(logEntry);
+        return logEntry;
     }
     
-    public String transferRecord(String recordID, Location region) throws RemoteException{
-        return m_Remote.transferRecord(m_HRID, recordID, region.toString());
+    public String transferRecord(String recordID, String location) {
+    	String logEntry = m_Remote.transferRecord(m_HRID, recordID, location);
+
+        addHRLogEntry(logEntry);
+        return logEntry;
     }
 
-    public String getRecordCount() throws RemoteException {
-        return m_Remote.getRecordCount(m_HRID);
+    public String getRecordCounts() {
+    	String logEntry = m_Remote.getRecordCounts(m_HRID);
+
+        addHRLogEntry(logEntry);
+        return logEntry;
     }
 
-    public int getRegionalRecordCount() throws RemoteException {
-        String allDesc = m_Remote.getRecordCount(m_HRID);
+    public int getRegionalRecordCount() {
+        String allDesc = m_Remote.getRecordCounts(m_HRID);
 
         allDesc = allDesc.substring(allDesc.indexOf(m_Region.getPrefix()) + 3);
         allDesc = allDesc.substring(0, allDesc.indexOf(" "));
 
         return Integer.parseInt(allDesc);
+    }
+    
+    public void softwareFailure() {
+    	m_Remote.softwareFailure(m_HRID);
+    }
+    
+    public void replicaCrash() {
+    	m_Remote.replicaCrash(m_HRID);
+    }
+    
+    public void clearLog() {
+        OperationLogger.deleteLogFile(new File("Logs/HR/" + m_HRID + ".txt"));
+    }
+    
+    private void addHRLogEntry(String... data) {
+        String hrLogFilePath = "Logs/HR/" + m_HRID + ".txt";
+        String dataToLog = String.join("\n", data) + "\n";
+    
+        OperationLogger.log(hrLogFilePath, dataToLog);
     }
 }

@@ -24,14 +24,17 @@
 package App;
 
 import Client.RegionalClient;
-import Interface.DEMS.Project;
-import Interface.DEMS.ProjectIdentifier;
-import Interface.DEMS.RemoteException;
-import Models.Feild;
+import Interface.Corba.Project;
 import Models.Location;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
 import org.omg.CORBA.ORB;
 
 /**
@@ -39,20 +42,22 @@ import org.omg.CORBA.ORB;
  * @author cmcarthur
  */
 public class ManagersClient {
-
-    /**
-     * @param args the command line arguments
-     */
+	
+	private static RegionalClient client;
+	private static Location location;
+	private static Scanner reader = new Scanner(System.in);
+	
     public static void main(String[] args) {
+    	if (args.length < 4) {
+            args = Stream.of("-ORBInitialPort", "1050", "-ORBInitialHost", "localhost").toArray(String[]::new);
+        }
+    	
         ORB orb = ORB.init(args, null);
 
-        System.out.println("Welcome to Christopher McArthur's Distributed Employee Management System\r\n");
-
-        System.out.println("DEMS Login...");
+        System.out.println("Welcome to the Distributed Employee Management System (DEMS)\r\n");
 
         boolean loginIsValid;
         String userLogin;
-        Scanner reader = new Scanner(System.in);
 
         do {
             loginIsValid = true;
@@ -63,21 +68,23 @@ public class ManagersClient {
             Matcher matcher = idPattern.matcher(userLogin);
 
             if (matcher.matches()) {
-                System.out.println("Invalid ID format. Format  if region code ( two letters ) "
+                try {
+                	location = Location.fromString(userLogin.substring(0, 2));
+                }
+            	catch (Exception ex) {
+	                System.out.println("Invalid ID region code. Available { CA, US, UK }. Ex: 'CA1111'");
+	                loginIsValid = false;
+            	}
+            }
+            else {
+            	System.out.println("Invalid ID format. Format  if region code ( two letters ) "
                         + "followed by 4 digits. Ex: 'CA1111'");
                 loginIsValid = false;
             }
 
-            try {
-                Location.fromString(userLogin.substring(0, 2));
-            } catch (Exception ex) {
-                System.out.println("Invalid ID region code. Available { CA, US, UK }. Ex: 'CA1111'");
-                loginIsValid = false;
-            }
-
         } while (!loginIsValid);
-
-        RegionalClient client = null;
+        
+        
         try {
             client = new RegionalClient(orb, userLogin);
         } catch (Exception ex) {
@@ -85,200 +92,252 @@ public class ManagersClient {
             System.exit(-1);
         }
 
-            boolean userRequestedExit = false;
-            do {
-                System.out.println("What operation would you like to perform?");
-                System.out.println("   1. Create manager record");
-                System.out.println("   2. Create employee record");
-                System.out.println("   3. Edit an existing record");
-                System.out.println("   4. Transfer record to remote location");
-                System.out.println("   5. Display total number of records");
-                System.out.println("   6. Exit");
-                System.out.print("Selection: ");
+        boolean userRequestedExit = false;
+        do {
+            System.out.println("\nWhat operation would you like to perform?");
+            System.out.println("   1. Create manager record");
+            System.out.println("   2. Create employee record");
+            System.out.println("   3. Edit an existing record");
+            System.out.println("   4. Transfer record to remote location");
+            System.out.println("   5. Display total number of records");
+            System.out.println("   6. Software Failure (Non-malicious Byzantine)");
+            System.out.println("   7. Process Crash Failure");
+            System.out.println("   8. Exit");
+            System.out.print("Selection: ");
 
-                int userSelection = reader.nextInt();
+            int userSelection = reader.nextInt();
+            reader.nextLine();
 
-                switch (userSelection) {
-                    case 1:
-                        createManagerRecord(client);
-                        break;
-                    case 2:
-                        createEmployeeRecord(client);
-                        break;
-                    case 3:
-                        editExistingRecord(client);
-                        break;
-                    case 4:
-                        transferExistingRecord(client);
-                        break;
-                    case 5:
-                        getRecordCounts(client);
-                        break;
-                    case 6:
-                        System.out.println("Good-bye!");
-                        userRequestedExit = true;
-                        break;
-                    default:
-                        System.out.println("Invalid selection");
-                        break;
-                }
-
-            } while (!userRequestedExit);
-
-    }
-
-    private static void createManagerRecord(RegionalClient client) {
-        Scanner reader = new Scanner(System.in);
-
-        System.out.println("To create a new manager record certain information is required...");
-
-        System.out.println("First Name:");
-        String firstName = reader.nextLine();
-
-        System.out.println("Last Name:");
-        String lastName = reader.nextLine();
-
-        System.out.println("Employee ID:");
-        int employeeId = reader.nextInt();
-        reader.nextLine();
-
-        System.out.println("Email:");
-        String mailId = reader.nextLine();
-
-        System.out.println("Project ID: (#####) No 'P' prefix!");
-        int projectId = reader.nextInt();
-        reader.nextLine();
-
-        System.out.println("Project Name:");
-        String projectName = reader.nextLine();
-
-        System.out.println("Project Client:");
-        String projectClient = reader.nextLine();
-
-        System.out.println("Location:");
-        String location = reader.nextLine();
-
-        String operationStatus;
-        try {
-            operationStatus = client.createManagerRecord(firstName, lastName, employeeId, mailId, new Project(
-                    new ProjectIdentifier("P", projectId), projectName, projectClient), location);
-        } catch (RemoteException ex) {
-            operationStatus = "Failed to invoke remote method... Please try again!";
-        }
-
-        System.out.println("Operation result >> " + operationStatus);
-
-    }
-
-    private static void createEmployeeRecord(RegionalClient client) {
-        Scanner reader = new Scanner(System.in);
-
-        System.out.println("To create a new employee record certain information is required...");
-
-        System.out.println("First Name:");
-        String firstName = reader.nextLine();
-
-        System.out.println("Last Name:");
-        String lastName = reader.nextLine();
-
-        System.out.println("Employee ID:");
-        int employeeId = reader.nextInt();
-        reader.nextLine();
-
-        System.out.println("Email:");
-        String mailId = reader.nextLine();
-
-        System.out.println("Project ID: (#####) No 'P' prefix!");
-        int projectNumber = reader.nextInt();
-        reader.nextLine();
-        String projectId = "P" + projectNumber;
-
-        String operationStatus;
-        try {
-            operationStatus = client.createEmployeeRecord(firstName, lastName, employeeId, mailId, projectId);
-        } catch (RemoteException ex) {
-            operationStatus = "Failed to invoke remote method... Please try again!";
-        }
-
-        System.out.println("Operation result >> " + operationStatus);
-
-    }
-
-    private static void editExistingRecord(RegionalClient client) {
-        Scanner reader = new Scanner(System.in);
-
-        System.out.println("To create a new employee record certain information is required...");
-        System.out.print("   Possible feild values are { ");
-        for (Feild feild : Feild.values()) {
-            System.out.print(feild.toString() + ", ");
-        }
-        System.out.println(" }");
-
-        System.out.println("Record ID:");
-        String recordId = reader.nextLine();
-
-        System.out.println("Feild Name:");
-        String feildName = reader.nextLine();
-
-        String operationStatus = null;
-        System.out.println("Enter value for " + feildName + ":");
-        try {
-            if (feildName.equals("employee id")) {
-                operationStatus = client.editRecord(recordId, feildName, reader.nextInt());
-                reader.nextLine();
-            } else {
-                operationStatus = client.editRecord(recordId, feildName, reader.nextLine());
+            switch (userSelection) {
+                case 1:
+                    createManagerRecord();
+                    break;
+                case 2:
+                    createEmployeeRecord();
+                    break;
+                case 3:
+                	editRecord();
+                    break;
+                case 4:
+                    transferRecord();
+                    break;
+                case 5:
+                    getRecordCounts();
+                    break;
+                case 6:
+                	softwareFailure();
+                    break;
+                case 7:
+                	replicaCrash();
+                	break;
+                case 8:
+                	System.out.println("Good-bye!");
+                	userRequestedExit = true;
+                	break;
+                default:
+                    System.out.println("Invalid selection");
+                    break;
             }
-        } catch (RemoteException ex) {
-            operationStatus = "Failed to invoke remote method... Please try again!";
-        }
 
-        System.out.println("Operation result >> " + operationStatus);
+        } while (!userRequestedExit);
+        
+        reader.close();
+        client.clearLog();
     }
 
-    private static void transferExistingRecord(RegionalClient client) {
-        Scanner reader = new Scanner(System.in);
+    private static void createManagerRecord() {
+    	createEmployee(true);
+    }
 
-        System.out.println("Which Record would you like to transfer...");
-        System.out.print("   Possible location values are { ");
-        for (Location region : Location.values()) {
-            System.out.print("{ " + region.toString() + " | " + region.getPrefix() + " }, ");
-        }
-        System.out.println(" }");
-
-        System.out.println("Record ID:");
-        String recordId = reader.nextLine();
-
-        System.out.println("Location:");
-        String location = reader.nextLine();
-
-        Location region;
-        try {
-            region = Location.fromString(location);
-        } catch (Exception ex) {
-            System.out.println("Invalid location specified: " + ex.getMessage());
-            return;
-        }
-
-        String operationStatus;
-        try {
-            operationStatus = client.transferRecord(recordId, region);
-        } catch (RemoteException ex) {
-            operationStatus = "Failed to invoke remote method... Please try again!";
-        }
-
-        System.out.println("Operation result >> " + operationStatus);
+    private static void createEmployeeRecord() {
+        createEmployee(false);
     }
     
-    private static void getRecordCounts(RegionalClient client) {
+    private static void createEmployee(boolean isManager) {
+        String fName, lName, mailID;
+        int empId;
+        Pattern basicInfoPattern = Pattern.compile("(?<fname>[A-Za-z][A-Za-z ]*);[ ]*(?<lname>[A-Za-z][A-Za-z- ]*);[ ]*(?<empID>[0-9]+);[ ]*(?<mailID>[\\w-]+@[a-z0-9.]+)");
+        Matcher matcher;
         
-        String operationStatus;
-        try {
-            operationStatus = client.getRecordCount();
-        } catch (RemoteException ex) {
-            operationStatus = "Failed to invoke remote method... Please try again!";
+        System.out.println("Please enter the employee/manager information in the following order (separated by semicolons ';'):");
+        System.out.println("First Name; Last Name; Employee ID; Mail ID");
+        
+        String recordBasicInfo = reader.nextLine();
+        matcher = basicInfoPattern.matcher(recordBasicInfo);
+    
+        if (matcher.matches()) {
+            fName = matcher.group("fname");
+            lName = matcher.group("lname");
+            empId = Integer.parseInt(matcher.group("empID"));
+            mailID = matcher.group("mailID");
         }
+        else {
+            // Error
+            System.out.println("The employee/manager's information was not entered with the proper format!");
+            return;
+        }
+        
+        // IF the record is a Manager
+        if (isManager) {
+            Project project;
+            Pattern projectInfoPattern = Pattern.compile("(?<projectID>P[0-9]{5});[ ]*(?<clientName>[A-Za-z][A-Za-z-. ]*);[ ]*(?<projectName>\\w[\\w- ]*)");
+    
+            System.out.println("\nPlease enter the Manager's PROJECT INFORMATION in the following order (separated by semicolons ';'):");
+            System.out.println("ProjectID (format: P00001); Client's Name; Project Name");
+            
+            String projectInfo = reader.nextLine();
+            matcher = projectInfoPattern.matcher(projectInfo);
+    
+            if (matcher.matches()) {
+                project = new Project(matcher.group("projectID"), matcher.group("clientName"), matcher.group("projectName"));
+            }
+            else {
+                // Error
+                System.out.println("The project information was not entered with the proper format!");
+                return;
+            }
 
-        System.out.println("Operation result >> " + operationStatus);
+            //  Send server request
+            String operationStatus = client.createManagerRecord(fName, lName, empId, mailID, project, location.getPrefix());
+
+            System.out.println("Operation result >> " + operationStatus);
+        }
+        
+        // It's a regular Employee
+        else {
+            String projectID;
+            Pattern projectIDPattern = Pattern.compile("(?<projectID>P[0-9]{5})");
+    
+            System.out.println("\nPlease enter the Employee's Project ID (format: P00001):");
+            
+            projectID = reader.nextLine();
+            matcher = projectIDPattern.matcher(projectID);
+    
+            if (matcher.matches()) {
+                projectID = matcher.group("projectID");
+            }
+            else {
+                // Error
+                System.out.println("The Project ID entered does not have the proper format! (format: P00001)");
+                return;
+            }
+    
+            //  Send server request
+            String operationStatus = client.createEmployeeRecord(fName, lName, empId, mailID, projectID);
+
+            System.out.println("Operation result >> " + operationStatus + "\n");
+        }
+    }
+    
+    private static void editRecord() {
+        String recordID, fieldToChange, newValue;
+        Pattern recordIDPattern = Pattern.compile("(?<recordID>(?>MR|ER)[0-9]{5})");
+        Matcher matcher;
+        ArrayList<String> fieldsCanBeChanged = new ArrayList<>();
+    
+        System.out.println("Please enter the Record ID:");
+    
+        recordID = reader.nextLine().toUpperCase();
+        matcher = recordIDPattern.matcher(recordID);
+    
+        if (matcher.matches()) {
+            recordID = matcher.group("recordID");
+        }
+        // Error: invalid Record ID format
+        else {
+            System.out.println("The Record ID entered does not have the proper format! (ex: MR10000, ER10001)");
+            return;
+        }
+        
+        // Set fields allowed to be edited based on employee type: Manager or Employee
+        if (recordID.substring(0, 2).equalsIgnoreCase("MR")) {
+            fieldsCanBeChanged.addAll(Arrays.asList("mailID", "projectID", "clientName", "projectName", "location"));
+            
+        }
+        else {
+            fieldsCanBeChanged.addAll(Arrays.asList("mailID", "projectID"));
+        }
+        
+        System.out.println("\nWhich of the following fields would you like to edit?");
+        System.out.println(String.join(", ", fieldsCanBeChanged));
+        
+        fieldToChange = reader.nextLine();
+        
+        if (!fieldsCanBeChanged.contains(fieldToChange)) {
+        	// Error: invalid field name
+            System.out.println("The field name that you wish to edit is not valid or allowed. The field names that can be modified are the following: " + String.join(", ", fieldsCanBeChanged));
+            return;
+        }
+        
+        System.out.print("\nNew value: ");
+        
+        newValue = reader.nextLine();
+            
+        if (newValue.equals("")) {
+        	// Error: Empty new value
+            System.out.println("The new value cannot be empty");
+            return;
+        }
+        
+        if (fieldToChange.equalsIgnoreCase("location") && !Location.isValidLocation(newValue)) {
+        	// Error: invalid location
+            System.out.println("The new location is not valid. Valid locations = " + Location.printLocations());
+            return;
+        }
+        
+    	String operationStatus = client.editRecord(recordID, fieldToChange, newValue);
+
+        System.out.println("Operation result >> " + operationStatus + "\n");
+    }
+    
+    private static void transferRecord() {
+        String recordID, centerServerLocation;
+        List<String> locations = Location.getLocationsAsStrings();
+        Pattern recordIDPattern = Pattern.compile("(?<recordID>(?>MR|ER)[0-9]{5})");
+        Matcher matcher;
+    
+        System.out.println("Please enter the Record ID:");
+    
+        recordID = reader.nextLine().toUpperCase();
+        matcher = recordIDPattern.matcher(recordID);
+    
+        if (matcher.matches()) {
+            recordID = matcher.group("recordID");
+        }
+        else {
+            System.out.println("The Record ID entered does not have the proper format! (ex: MR10000, ER10001)");
+            return;
+        }
+        
+        // Remove the Manager's location. Transferring to the same location is useless.
+        locations.remove(location.toString());
+    
+        System.out.println("\nWhere would you like to transfer the record?");
+        System.out.println("Options: " + String.join(", ", locations));
+    
+        centerServerLocation = reader.nextLine().toUpperCase();
+        
+        if (!locations.contains(centerServerLocation)) {
+        	System.out.println("The center server location entered is not valid.");
+            return;
+        }
+        
+        String operationStatus = client.transferRecord(recordID, centerServerLocation);
+
+        System.out.println("Operation result >> " + operationStatus + "\n");
+    }
+    
+    private static void getRecordCounts() {
+        String operationStatus = client.getRecordCounts();
+
+        System.out.println("Operation result >> " + operationStatus + "\n");
+    }
+    
+    private static void softwareFailure() {
+    	client.softwareFailure();
+    }
+    
+    private static void replicaCrash() {
+    	client.replicaCrash();
     }
 }
