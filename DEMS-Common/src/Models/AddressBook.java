@@ -48,16 +48,7 @@ public enum AddressBook {
         m_Port = port;
     }
 
-
-    public InetAddress getAddr() {
-        return m_Addr;
-    }
-
-    public int getPort() {
-        return m_Port;
-    }
-
-	@Override
+    @Override
     public String toString() {
         return m_Name;
     }
