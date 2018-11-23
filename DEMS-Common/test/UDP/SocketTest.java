@@ -41,7 +41,6 @@ public class SocketTest implements RequestListener.Processor {
 
     public static AddressBook TEST_ADDR = AddressBook.REPLICAS;
 
-
     public SocketTest() {
         m_Listener = new RequestListener(this, TEST_ADDR);
     }
@@ -88,13 +87,12 @@ public class SocketTest implements RequestListener.Processor {
     @Override
     public String handleRequestMessage(Message msg) throws Exception {
         this.msg = msg;
-        
-        int randomNum = ThreadLocalRandom.current().nextInt(0, 3) ;
-        if( randomNum == 0 ){
+
+        int randomNum = ThreadLocalRandom.current().nextInt(0, 3);
+        if (randomNum == 0) {
             throw new Exception("Dummy Exception");
         }
-        
+
         return "RETVAL";
     }
-
 }

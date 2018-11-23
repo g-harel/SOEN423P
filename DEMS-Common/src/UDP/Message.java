@@ -66,6 +66,7 @@ public class Message {
         this.m_Port = addrInfo.getPort();
     }
 
+    // This should only be used by RequestListener
     public Message(OperationCode code, int seq, String data, InetAddress addr, int port) {
         this.m_Code = code;
         this.m_SeqNum = seq;
