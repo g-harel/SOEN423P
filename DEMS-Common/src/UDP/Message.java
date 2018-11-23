@@ -23,6 +23,7 @@
  */
 package UDP;
 
+import Models.AddressBook;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 
@@ -57,6 +58,15 @@ public class Message {
         this.m_Port = packet.getPort();
     }
 
+    public Message(OperationCode code, int seq, String data, AddressBook addrInfo) {
+        this.m_Code = code;
+        this.m_SeqNum = seq;
+        this.m_Data = data;
+        this.m_Addr = addrInfo.getAddr();
+        this.m_Port = addrInfo.getPort();
+    }
+
+    // This should only be used by RequestListener
     public Message(OperationCode code, int seq, String data, InetAddress addr, int port) {
         this.m_Code = code;
         this.m_SeqNum = seq;
@@ -85,8 +95,6 @@ public class Message {
     public int getPort() {
         return m_Port;
     }
-    
-    
 
     @Override
     public String toString() {
