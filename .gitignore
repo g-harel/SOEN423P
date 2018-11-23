@@ -43,3 +43,6 @@ hs_err_pid*
 /FrontEnd/dist/
 /FrontEnd/bin/
 !/**/lib/*.jar
+/Sequencer/nbproject/private/
+/Sequencer/build/
+/Sequencer/dist/

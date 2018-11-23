@@ -56,41 +56,41 @@ public class RegionalClient {
         org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");
         NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
         m_Remote = IFrontEndHelper.narrow(ncRef.resolve_str(AddressBook.FRONTEND.getShortHandName()));
-        
+
         LogEntry logEntry = new LogEntry(m_HRID, "Login", true);
         addHRLogEntry(logEntry.toString());
     }
 
     public String createManagerRecord(String firstName, String lastName, int employeeID, String mailID, Project projects, String location) {
         String logEntry = m_Remote.createMRecord(m_HRID, firstName, lastName, employeeID, mailID, projects, location);
-        
+
         addHRLogEntry(logEntry);
         return logEntry;
     }
 
     public String createEmployeeRecord(String firstName, String lastName, int employeeID, String mailID, String projectId) {
-    	String logEntry = m_Remote.createERecord(m_HRID, firstName, lastName, employeeID, mailID, projectId);
+        String logEntry = m_Remote.createERecord(m_HRID, firstName, lastName, employeeID, mailID, projectId);
 
         addHRLogEntry(logEntry);
         return logEntry;
     }
 
     public String editRecord(String recordID, String feildName, String newValue) {
-    	String logEntry = m_Remote.editRecord(m_HRID, recordID, feildName, newValue);
+        String logEntry = m_Remote.editRecord(m_HRID, recordID, feildName, newValue);
 
         addHRLogEntry(logEntry);
         return logEntry;
     }
-    
+
     public String transferRecord(String recordID, String location) {
-    	String logEntry = m_Remote.transferRecord(m_HRID, recordID, location);
+        String logEntry = m_Remote.transferRecord(m_HRID, recordID, location);
 
         addHRLogEntry(logEntry);
         return logEntry;
     }
 
     public String getRecordCounts() {
-    	String logEntry = m_Remote.getRecordCounts(m_HRID);
+        String logEntry = m_Remote.getRecordCounts(m_HRID);
 
         addHRLogEntry(logEntry);
         return logEntry;
@@ -104,23 +104,23 @@ public class RegionalClient {
 
         return Integer.parseInt(allDesc);
     }
-    
+
     public void softwareFailure() {
-    	m_Remote.softwareFailure(m_HRID);
+        m_Remote.softwareFailure(m_HRID);
     }
-    
+
     public void replicaCrash() {
-    	m_Remote.replicaCrash(m_HRID);
+        m_Remote.replicaCrash(m_HRID);
     }
-    
+
     public void clearLog() {
         OperationLogger.deleteLogFile(new File("Logs/HR/" + m_HRID + ".txt"));
     }
-    
+
     private void addHRLogEntry(String... data) {
         String hrLogFilePath = "Logs/HR/" + m_HRID + ".txt";
         String dataToLog = String.join("\n", data) + "\n";
-    
+
         OperationLogger.log(hrLogFilePath, dataToLog);
     }
 }
