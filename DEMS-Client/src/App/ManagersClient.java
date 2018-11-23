@@ -159,7 +159,7 @@ public class ManagersClient {
         Pattern basicInfoPattern = Pattern.compile("(?<fname>[A-Za-z][A-Za-z ]*);[ ]*(?<lname>[A-Za-z][A-Za-z- ]*);[ ]*(?<empID>[0-9]+);[ ]*(?<mailID>[\\w-]+@[a-z0-9.]+)");
         Matcher matcher;
         
-        System.out.println("Please enter the employee/manager information in the following order (separated by semicolons ';'):");
+        System.out.println("Please enter the " + ( (isManager)? "manager" : "employee" ) + " information in the following order (separated by semicolons ';'):");
         System.out.println("First Name; Last Name; Employee ID; Mail ID");
         
         String recordBasicInfo = reader.nextLine();
@@ -173,7 +173,7 @@ public class ManagersClient {
         }
         else {
             // Error
-            System.out.println("The employee/manager's information was not entered with the proper format!");
+            System.out.println("The " + ( (isManager)? "manager" : "employee" ) + "'s information was not entered with the proper format!");
             return;
         }
         
