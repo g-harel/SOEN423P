@@ -31,7 +31,10 @@ import java.net.UnknownHostException;
  * @author cmcarthur
  */
 public enum AddressBook {
-    FRONTEND("DEMS-Front-End", "FE", "239.101.10.10", 13547);
+    FRONTEND("DEMS-Front-End", "FE", "239.101.10.10", 13547),
+    SEQUENCER("DEMS-Sequencer", "SEQ", "239.101.20.20", 45794),
+    MANAGER("DEMS-Replica-Manager", "RM", "239.101.30.30", 25897),
+    REPLICAS("DEMS-Replica-Instance", "PI", "239.101.40.40", 34268);
 
     private AddressBook(String name, String shortHand, String addr, int port) {
         m_Name = name;
@@ -39,11 +42,11 @@ public enum AddressBook {
         try {
             m_Addr = InetAddress.getByName(addr);
         } catch (UnknownHostException ex) {
+            System.out.println("This is impossible... " + ex.getMessage());
             m_Addr = InetAddress.getLoopbackAddress();
         }
         m_Port = port;
-    }   
-
+    }
 
     @Override
     public String toString() {
@@ -52,6 +55,14 @@ public enum AddressBook {
 
     public String getShortHandName() {
         return m_ShortHand;
+    }
+
+    public InetAddress getAddr() {
+        return m_Addr;
+    }
+
+    public int getPort() {
+        return m_Port;
     }
 
     private InetAddress m_Addr;
