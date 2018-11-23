@@ -38,7 +38,8 @@ public class SocketTest implements RequestListener.Processor {
     Message msg;
 
     public static int TEST_PORT = 35646;
-    public static String TEST_ADDR = "127.0.0.1";
+    public static String TEST_ADDR = "239.1.1.1";
+
 
     public SocketTest() {
         m_Listener = new RequestListener(this, TEST_ADDR, TEST_PORT);
