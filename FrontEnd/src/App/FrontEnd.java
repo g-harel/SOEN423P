@@ -57,8 +57,8 @@ import org.omg.PortableServer.POAHelper;
  * @author cmcarthur
  */
 public class FrontEnd extends IFrontEndPOA implements Runnable {
-	
-	private HashMap<Integer, List<ClientRequest>> responses = new HashMap<>();
+
+    private HashMap<Integer, List<ClientRequest>> responses = new HashMap<>();
 //    private InetAddress sequencerIP = AddressBook.SEQUENCER.getAddr();
 //    private int sequencerPort = AddressBook.SEQUENCER.getPort();
     private int frontEndPort = AddressBook.FRONTEND.getPort();
@@ -71,201 +71,197 @@ public class FrontEnd extends IFrontEndPOA implements Runnable {
             args = Stream.of("-ORBInitialPort", "1050", "-ORBInitialHost", "localhost").toArray(String[]::new);
         }
         try {
-        	// create and initialize the ORB
+            // create and initialize the ORB
             ORB orb = ORB.init(args, null);
-        
+
             // get reference to rootpoa & activate the POAManager
             POA rootpoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
             rootpoa.the_POAManager().activate();
-    
+
             // get the root naming context
             // NameService invokes the name service
             org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");
-    
+
             // Use NamingContextExt which is part of the Interoperable
             // Naming Service (INS) specification.
             NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
-    
+
             // get object reference from the servant
             FrontEnd frontEnd = new FrontEnd();
             Thread frontEnd_thread = new Thread(frontEnd);
             frontEnd_thread.start();	// Start Front-end UDP server
-            
+
             org.omg.CORBA.Object ref = rootpoa.servant_to_reference(frontEnd);
             IFrontEnd href = IFrontEndHelper.narrow(ref);
 
             // bind the Object Reference in Naming
             NameComponent path[] = ncRef.to_name(AddressBook.FRONTEND.getShortHandName());
             ncRef.rebind(path, href);
-    
+
             System.out.println("The Front-end (CORBA) is now running on port 1050 ...");
-        
+
             // wait for invocations from clients
             orb.run();
 
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             System.out.println("Failed to start the Front-End!");
             e.printStackTrace();
         }
     }
-    
+
     @Override
     public synchronized String createMRecord(String managerID, String firstName, String lastName, int employeeID, String mailID, Project project, String location) {
-		ClientRequest request = setupClientRequest(managerID);
-		
-		request.addRequestDataEntry("managerID", managerID);
-		request.addRequestDataEntry("firstName", firstName);
-		request.addRequestDataEntry("lastName", lastName);
-		request.addRequestDataEntry("employeeID", employeeID);
-		request.addRequestDataEntry("mailID", mailID);
-		request.addRequestDataEntry("project", project);
-		request.addRequestDataEntry("location", location);
-		
-		sendRequestToSequencer(request);
+        ClientRequest request = setupClientRequest(managerID);
+
+        request.addRequestDataEntry("managerID", managerID);
+        request.addRequestDataEntry("firstName", firstName);
+        request.addRequestDataEntry("lastName", lastName);
+        request.addRequestDataEntry("employeeID", employeeID);
+        request.addRequestDataEntry("mailID", mailID);
+        request.addRequestDataEntry("project", project);
+        request.addRequestDataEntry("location", location);
+
+        sendRequestToSequencer(request);
         return "";
     }
-    
+
     @Override
     public synchronized String createERecord(String managerID, String firstName, String lastName, int employeeID, String mailID, String projectID) {
-    	ClientRequest request = setupClientRequest(managerID);
-		
-		request.addRequestDataEntry("managerID", managerID);
-		request.addRequestDataEntry("firstName", firstName);
-		request.addRequestDataEntry("lastName", lastName);
-		request.addRequestDataEntry("employeeID", employeeID);
-		request.addRequestDataEntry("mailID", mailID);
-		request.addRequestDataEntry("projectID", projectID);
-		
-		sendRequestToSequencer(request);
+        ClientRequest request = setupClientRequest(managerID);
+
+        request.addRequestDataEntry("managerID", managerID);
+        request.addRequestDataEntry("firstName", firstName);
+        request.addRequestDataEntry("lastName", lastName);
+        request.addRequestDataEntry("employeeID", employeeID);
+        request.addRequestDataEntry("mailID", mailID);
+        request.addRequestDataEntry("projectID", projectID);
+
+        sendRequestToSequencer(request);
         return "";
     }
-    
+
     @Override
     public String getRecordCounts(String managerID) {
         Map<Location, Integer> recordCount = new HashMap<>();
-        
+
         return recordCount.toString();
     }
-    
+
     @Override
     public synchronized String editRecord(String managerID, String recordID, String fieldName, String newValue) {
-    	ClientRequest request = setupClientRequest(managerID);
-		
-		request.addRequestDataEntry("managerID", managerID);
-		request.addRequestDataEntry("recordID", recordID);
-		request.addRequestDataEntry("fieldName", fieldName);
-		request.addRequestDataEntry("newValue", newValue);
-		
-		sendRequestToSequencer(request);
+        ClientRequest request = setupClientRequest(managerID);
+
+        request.addRequestDataEntry("managerID", managerID);
+        request.addRequestDataEntry("recordID", recordID);
+        request.addRequestDataEntry("fieldName", fieldName);
+        request.addRequestDataEntry("newValue", newValue);
+
+        sendRequestToSequencer(request);
         return "";
     }
-    
+
     @Override
     public String transferRecord(String managerID, String recordID, String location) {
-    	ClientRequest request = setupClientRequest(managerID);
-		
-		request.addRequestDataEntry("managerID", managerID);
-		request.addRequestDataEntry("recordID", recordID);
-		request.addRequestDataEntry("location", location);
-		
-		sendRequestToSequencer(request);
+        ClientRequest request = setupClientRequest(managerID);
+
+        request.addRequestDataEntry("managerID", managerID);
+        request.addRequestDataEntry("recordID", recordID);
+        request.addRequestDataEntry("location", location);
+
+        sendRequestToSequencer(request);
         return "";
     }
-    
-	@Override
-	public void softwareFailure(String managerID) {
-		ClientRequest request = setupClientRequest(managerID);
-		sendRequestToSequencer(request);
-	}
 
-	@Override
-	public void replicaCrash(String managerID) {
-		ClientRequest request = setupClientRequest(managerID);
-		sendRequestToSequencer(request);
-	}
-	
-	private void sendRequestToSequencer(ClientRequest request) {
-		try {
-			System.out.println(request);
-        	ByteArrayOutputStream bStream = new ByteArrayOutputStream();
+    @Override
+    public void softwareFailure(String managerID) {
+        ClientRequest request = setupClientRequest(managerID);
+        sendRequestToSequencer(request);
+    }
+
+    @Override
+    public void replicaCrash(String managerID) {
+        ClientRequest request = setupClientRequest(managerID);
+        sendRequestToSequencer(request);
+    }
+
+    private void sendRequestToSequencer(ClientRequest request) {
+        try {
+            System.out.println(request);
+            ByteArrayOutputStream bStream = new ByteArrayOutputStream();
             ObjectOutput oo = new ObjectOutputStream(bStream);
             oo.writeObject(request);
             oo.close();
 
             byte[] serializedMessage = bStream.toByteArray();
 //			sendUDPRequest(serializedMessage, InetAddress.getByName(sequencerIP), sequencerPort);
-			// TODO: Use Reliable UDP instead
-		}
-        catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private ClientRequest setupClientRequest(String managerID) {
-		String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-		String location = managerID.substring(0, 2);
-		
-		return new ClientRequest(methodName, location);
-	}
-    
+            // TODO: Use Reliable UDP instead
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private ClientRequest setupClientRequest(String managerID) {
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        String location = managerID.substring(0, 2);
+
+        return new ClientRequest(methodName, location);
+    }
+
     private String sendUDPRequest(byte[] message, InetAddress host, int port) throws IOException {
         DatagramSocket aSocket = new DatagramSocket();
-        
+
         DatagramPacket request = new DatagramPacket(message, message.length, host, port);
         aSocket.send(request);
-    
+
         byte[] buffer = new byte[1000];
         DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
         aSocket.receive(reply);
-    
+
         aSocket.close();
-        
+
         return new String(reply.getData()).trim();
     }
-    
+
     // Runs UDP Server
     public void run() {
         DatagramSocket aSocket = null;
-    
+
         try {
             System.out.println("Front-end started to listen for UDP requests on port: " + frontEndPort);
-            
+
             aSocket = new DatagramSocket(frontEndPort);
             byte[] buffer = new byte[1000];
-        
+
             while (true) {
                 DatagramPacket resultPacket = new DatagramPacket(buffer, buffer.length);
                 String replicaResponse;
-                
+
                 aSocket.receive(resultPacket);
                 replicaResponse = new String(resultPacket.getData()).trim();
-                
+
                 if (replicaResponse.contains("ReplicaResponse")) {
                     ObjectInputStream iStream = new ObjectInputStream(new ByteArrayInputStream(resultPacket.getData()));
                     Object input = iStream.readObject();
                     ReplicaResponse dataReceived;
                     iStream.close();
-                    
+
                     if (input instanceof ReplicaResponse) {
                         dataReceived = (ReplicaResponse) input;
-                    }
-                    else {
+                    } else {
                         throw new IOException("Data received is not valid.");
                     }
-                    
+
                     // TODO: What to do with ReplicaResponse
-                }
-                else {
-                	throw new IOException("Response is not a ReplicaResponse.");
+                } else {
+                    throw new IOException("Response is not a ReplicaResponse.");
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        }
-        finally {
-            if (aSocket != null) aSocket.close();
+        } finally {
+            if (aSocket != null) {
+                aSocket.close();
+            }
         }
     }
 }
