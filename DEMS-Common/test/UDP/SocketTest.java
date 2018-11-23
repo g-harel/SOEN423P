@@ -23,6 +23,7 @@
  */
 package UDP;
 
+import java.util.concurrent.ThreadLocalRandom;
 import java.net.InetAddress;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -52,8 +53,6 @@ public class SocketTest implements RequestListener.Processor {
      */
     @Test
     public void testSendGetsAck() throws Exception {
-        System.out.println("send working");
-
         m_ListenerThread = new Thread(m_Listener);
         m_ListenerThread.start();
         m_Listener.Wait();
@@ -68,6 +67,7 @@ public class SocketTest implements RequestListener.Processor {
         assertEquals(msg.getOpCode(), send.getOpCode());
         assertEquals(msg.getData(), "TESTING");
         assertEquals(instance.getResponse().getData(), "RETVAL");
+        assertEquals(instance.getResponse().getOpCode(), OperationCode.ACK_TRANSFER_RECORD);
 
         m_Listener.Stop();
         m_ListenerThread.join();
@@ -87,8 +87,14 @@ public class SocketTest implements RequestListener.Processor {
     }
 
     @Override
-    public String handleRequestMessage(Message msg) {
+    public String handleRequestMessage(Message msg) throws Exception {
         this.msg = msg;
+        
+        int randomNum = ThreadLocalRandom.current().nextInt(0, 3) ;
+        if( randomNum == 0 ){
+            throw new Exception("Dummy Exception");
+        }
+        
         return "RETVAL";
     }
 

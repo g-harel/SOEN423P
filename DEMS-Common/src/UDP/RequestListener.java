@@ -39,8 +39,9 @@ public class RequestListener implements Runnable {
         /*
         @msg the new incomming request
         @return the payload/data to respond
+        @throws the error message to reply
          */
-        public String handleRequestMessage(Message msg);
+        public String handleRequestMessage(Message msg) throws Exception;
     }
 
     private int m_Port;
@@ -95,7 +96,7 @@ public class RequestListener implements Runnable {
             }
 
             Message response = processRequest(request);
-            
+
             try {
                 m_Socket.send(response.getPacket());
             } catch (IOException ex) {
@@ -111,9 +112,8 @@ public class RequestListener implements Runnable {
             InetAddress addr = InetAddress.getByName(m_Address);
             m_Socket = new MulticastSocket(m_Port);
             m_Socket.joinGroup(addr);
-            
             m_ShouldContinueWorking = true;
-        } catch ( IOException ex) {
+        } catch (IOException ex) {
             m_ShouldContinueWorking = false;
             System.out.println("Failed to create socket due to: " + ex.getMessage());
         }
@@ -131,14 +131,22 @@ public class RequestListener implements Runnable {
 
         return new Message(packet);
     }
-    
-    private Message processRequest(Message request){
-            System.out.println("Processing new request...");
-            String responsePayload = m_Handler.handleRequestMessage(request);
-            OperationCode responseCode = request.getOpCode().toAck();
-            InetAddress address = request.getAddress();
-            int port = request.getPort();
-            return new Message(responseCode, 0, responsePayload, address, port);
-        
+
+    private Message processRequest(Message request) {
+        System.out.println("Processing new request...");
+        String responsePayload;
+        OperationCode responseCode = OperationCode.INVALID;
+
+        try {
+            responsePayload = m_Handler.handleRequestMessage(request);
+            responseCode = request.getOpCode().toAck();
+
+        } catch (Exception ex) {
+            responsePayload = ex.getMessage();
+        }
+
+        InetAddress address = request.getAddress();
+        int port = request.getPort();
+        return new Message(responseCode, 0, responsePayload, address, port);
     }
 }
