@@ -23,7 +23,6 @@
  */
 package UDP;
 
-import static UDP.RequestListener.TEST_PORT;
 import java.net.InetAddress;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -38,8 +37,11 @@ public class SocketTest implements RequestListener.Processor {
     private Thread m_ListenerThread;
     Message msg;
 
+    public static int TEST_PORT = 35646;
+    public static String TEST_ADDR = "127.0.0.1";
+
     public SocketTest() {
-        m_Listener = new RequestListener(this);
+        m_Listener = new RequestListener(this, TEST_ADDR, TEST_PORT);
     }
 
     /**
@@ -64,6 +66,7 @@ public class SocketTest implements RequestListener.Processor {
         // Make sure capture message was what we sent!
         assertEquals(msg.getOpCode(), send.getOpCode());
         assertEquals(msg.getData(), "TESTING");
+        assertEquals(instance.getResponse().getData(), "RETVAL");
 
         m_Listener.Stop();
         m_ListenerThread.join();
@@ -83,8 +86,9 @@ public class SocketTest implements RequestListener.Processor {
     }
 
     @Override
-    public void copyMessage(Message msg) {
+    public String handleRequestMessage(Message msg) {
         this.msg = msg;
+        return "RETVAL";
     }
 
 }

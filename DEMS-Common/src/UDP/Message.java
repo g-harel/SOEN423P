@@ -78,6 +78,16 @@ public class Message {
         return m_Code;
     }
 
+    public InetAddress getAddress() {
+        return m_Addr;
+    }
+
+    public int getPort() {
+        return m_Port;
+    }
+    
+    
+
     @Override
     public String toString() {
         return "Message{" + "code=" + m_Code + ", seq=" + m_SeqNum + ", data=" + m_Data + ", addr=" + m_Addr + ", port=" + m_Port + '}';

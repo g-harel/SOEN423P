@@ -28,7 +28,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.util.concurrent.ThreadLocalRandom;
+import java.net.UnknownHostException;
 
 /**
  *
@@ -38,20 +38,27 @@ public class RequestListener implements Runnable {
 
     public interface Processor {
 
-        public void copyMessage(Message msg);
+        /*
+        @msg the new incomming request
+        @return the payload/data to respond
+         */
+        public String handleRequestMessage(Message msg);
     }
-    
-    public static int TEST_PORT = 35646;
+
+    private int m_Port;
+    private String m_Address;
 
     final private Processor m_Handler;
 
     private boolean m_ShouldContinueWorking;
     private boolean m_ProcessingHasBegun;
 
-    private DatagramSocket socket;
+    private DatagramSocket m_Socket;
 
-    public RequestListener(Processor handler) {
+    public RequestListener(Processor handler, String address, int port) {
         m_Handler = handler;
+        m_Address = address;
+        m_Port = port;
         m_ShouldContinueWorking = false;
         m_ProcessingHasBegun = false;
     }
@@ -59,7 +66,7 @@ public class RequestListener implements Runnable {
     public void Stop() {
         m_ShouldContinueWorking = false;
         m_ProcessingHasBegun = false;
-        socket.close();
+        m_Socket.close();
     }
 
     public void Wait() {
@@ -75,13 +82,7 @@ public class RequestListener implements Runnable {
 
     @Override
     public void run() {
-        try {
-            socket = new DatagramSocket(TEST_PORT);
-            m_ShouldContinueWorking = true;
-        } catch (SocketException ex) {
-            m_ShouldContinueWorking = false;
-            System.out.println("Failed to create socket due to: " + ex.getMessage());
-        }
+        createSocket();
 
         if (m_ShouldContinueWorking) {
             System.out.println("Ready...");
@@ -89,37 +90,55 @@ public class RequestListener implements Runnable {
         }
 
         while (m_ShouldContinueWorking) {
-            byte[] buf = new byte[256];
-            DatagramPacket packet = new DatagramPacket(buf, buf.length);
-            try {
-                socket.receive(packet);
-            } catch (IOException ex) {
-                System.out.println("Failed to receive message due to: " + ex.getMessage());
-                return;
+            Message request = waitForIncommingMessage();
+
+            if (request == null) {
+                break; // We are closing so exit
             }
 
-            System.out.println("Processing new request...");
-            Message request = new Message(packet);
-
-            String responsePayload = "ERROR";
+            Message response = processRequest(request);
             
-            int randomNum = ThreadLocalRandom.current().nextInt(0, 3) ;
-            OperationCode responseCode = ( randomNum == 0 ) ? request.getOpCode().toAck() : OperationCode.INVALID;
-
-            m_Handler.copyMessage(request);
-
-            InetAddress address = packet.getAddress();
-            int port = packet.getPort();
-            Message response = new Message(responseCode, 0, responsePayload, address, port);
-
             try {
-                socket.send(response.getPacket());
+                m_Socket.send(response.getPacket());
             } catch (IOException ex) {
-                System.out.println("Failed to send message");
-                System.out.println(ex);
+                System.out.println("Failed to send message: " + ex.getMessage());
             }
         }
 
-        socket.close();
+        m_Socket.close();
+    }
+
+    private void createSocket() {
+        try {
+            InetAddress addr = InetAddress.getByName(m_Address);
+            m_Socket = new DatagramSocket(m_Port, addr);
+            m_ShouldContinueWorking = true;
+        } catch (SocketException | UnknownHostException ex) {
+            m_ShouldContinueWorking = false;
+            System.out.println("Failed to create socket due to: " + ex.getMessage());
+        }
+    }
+
+    private Message waitForIncommingMessage() {
+        byte[] buf = new byte[256];
+        DatagramPacket packet = new DatagramPacket(buf, buf.length);
+        try {
+            m_Socket.receive(packet);
+        } catch (IOException ex) {
+            System.out.println("Failed to receive message due to: " + ex.getMessage());
+            return null;
+        }
+
+        return new Message(packet);
+    }
+    
+    private Message processRequest(Message request){
+            System.out.println("Processing new request...");
+            String responsePayload = m_Handler.handleRequestMessage(request);
+            OperationCode responseCode = request.getOpCode().toAck();
+            InetAddress address = request.getAddress();
+            int port = request.getPort();
+            return new Message(responseCode, 0, responsePayload, address, port);
+        
     }
 }

@@ -35,9 +35,14 @@ import java.net.SocketException;
 public class Socket {
 
     DatagramSocket socket;
+    Message response;
 
     public Socket() throws SocketException {
         this.socket = new DatagramSocket();
+    }
+
+    public Message getResponse() {
+        return response;
     }
 
     /*
@@ -56,6 +61,8 @@ public class Socket {
             if (hopefulAck.getOpCode() != msg.getOpCode().toAck()) {
                 throw new Exception("RUDP: Rx an message but wasnt the correct ACK OpCode");
             }
+            
+            response = hopefulAck;
 
         } catch (Exception e) {
             if (--retryCounter > 0) {
