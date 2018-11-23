@@ -23,6 +23,7 @@
  */
 package UDP;
 
+import Models.AddressBook;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -44,8 +45,7 @@ public class RequestListener implements Runnable {
         public String handleRequestMessage(Message msg) throws Exception;
     }
 
-    private int m_Port;
-    private String m_Address;
+    private AddressBook m_Address;
 
     final private Processor m_Handler;
 
@@ -54,10 +54,9 @@ public class RequestListener implements Runnable {
 
     private MulticastSocket m_Socket;
 
-    public RequestListener(Processor handler, String address, int port) {
+    public RequestListener(Processor handler, AddressBook address) {
         m_Handler = handler;
         m_Address = address;
-        m_Port = port;
         m_ShouldContinueWorking = false;
         m_ProcessingHasBegun = false;
     }
@@ -109,9 +108,8 @@ public class RequestListener implements Runnable {
 
     private void createSocket() {
         try {
-            InetAddress addr = InetAddress.getByName(m_Address);
-            m_Socket = new MulticastSocket(m_Port);
-            m_Socket.joinGroup(addr);
+            m_Socket = new MulticastSocket(m_Address.getPort());
+            m_Socket.joinGroup(m_Address.getAddr());
             m_ShouldContinueWorking = true;
         } catch (IOException ex) {
             m_ShouldContinueWorking = false;
