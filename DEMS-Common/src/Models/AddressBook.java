@@ -23,18 +23,27 @@
  */
 package Models;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 /**
  *
  * @author cmcarthur
  */
 public enum AddressBook {
-    FRONTEND(0000, "DEMS-Front-End", "FE");
+    FRONTEND("DEMS-Front-End", "FE", "239.101.10.10", 13547);
 
-    private AddressBook(int m_ID, String m_Name, String m_ShortHand) {
-        this.m_ID = m_ID;
-        this.m_Name = m_Name;
-        this.m_ShortHand = m_ShortHand;
-    }
+    private AddressBook(String name, String shortHand, String addr, int port) {
+        m_Name = name;
+        m_ShortHand = shortHand;
+        try {
+            m_Addr = InetAddress.getByName(addr);
+        } catch (UnknownHostException ex) {
+            m_Addr = InetAddress.getLoopbackAddress();
+        }
+        m_Port = port;
+    }   
+
 
     @Override
     public String toString() {
@@ -45,7 +54,8 @@ public enum AddressBook {
         return m_ShortHand;
     }
 
-    private final int m_ID;
+    private InetAddress m_Addr;
+    private final int m_Port;
     private final String m_Name;
     private final String m_ShortHand;
 }
