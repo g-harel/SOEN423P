@@ -23,6 +23,7 @@
  */
 package UDP;
 
+import Models.AddressBook;
 import java.util.concurrent.ThreadLocalRandom;
 import java.net.InetAddress;
 import org.junit.Test;
@@ -38,12 +39,11 @@ public class SocketTest implements RequestListener.Processor {
     private Thread m_ListenerThread;
     Message msg;
 
-    public static int TEST_PORT = 35646;
-    public static String TEST_ADDR = "239.1.1.1";
+    public static AddressBook TEST_ADDR = AddressBook.REPLICAS;
 
 
     public SocketTest() {
-        m_Listener = new RequestListener(this, TEST_ADDR, TEST_PORT);
+        m_Listener = new RequestListener(this, TEST_ADDR);
     }
 
     /**
@@ -57,8 +57,7 @@ public class SocketTest implements RequestListener.Processor {
         m_ListenerThread.start();
         m_Listener.Wait();
 
-        InetAddress addr = InetAddress.getLoopbackAddress();
-        Message send = new Message(OperationCode.TRANSFER_RECORD, 0, "TESTING", addr, TEST_PORT);
+        Message send = new Message(OperationCode.TRANSFER_RECORD, 0, "TESTING", TEST_ADDR);
         Socket instance = new Socket();
 
         assertEquals(true, instance.send(send, 10, 1000));
