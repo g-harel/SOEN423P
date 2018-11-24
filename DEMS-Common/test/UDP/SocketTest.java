@@ -24,10 +24,16 @@
 package UDP;
 
 import Models.AddressBook;
+import Models.Location;
 import java.util.concurrent.ThreadLocalRandom;
 import java.net.InetAddress;
+import java.net.SocketException;
+import java.util.LinkedList;
+import java.util.List;
+import org.junit.After;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Before;
 
 /**
  *
@@ -35,14 +41,30 @@ import static org.junit.Assert.*;
  */
 public class SocketTest implements RequestListener.Processor {
 
-    final private RequestListener m_Listener;
+    final private Socket m_Socket;
+    static private RequestListener m_Listener;
     private Thread m_ListenerThread;
-    Message msg;
+    private List<Message> m_ListOfMessages;
 
     public static AddressBook TEST_ADDR = AddressBook.REPLICAS;
 
-    public SocketTest() {
+    public SocketTest() throws SocketException {
+        m_Socket = new Socket();
+        m_ListOfMessages = new LinkedList<>();
+    }
+
+    @Before
+    public void setUp() {
         m_Listener = new RequestListener(this, TEST_ADDR);
+        m_ListenerThread = new Thread(m_Listener);
+        m_ListenerThread.start();
+        m_Listener.Wait();
+    }
+
+    @After
+    public void tearDown() throws InterruptedException {
+        m_Listener.Stop();
+        m_ListenerThread.join();
     }
 
     /**
@@ -52,24 +74,21 @@ public class SocketTest implements RequestListener.Processor {
      */
     @Test
     public void testSendGetsAck() throws Exception {
-        m_ListenerThread = new Thread(m_Listener);
-        m_ListenerThread.start();
-        m_Listener.Wait();
-
         Message send = new Message(OperationCode.TRANSFER_RECORD, 5654, "TESTING", TEST_ADDR);
-        Socket instance = new Socket();
 
-        assertEquals(true, instance.send(send, 10, 1000));
+        assertEquals(true, m_Socket.send(send, 10, 1000));
 
         // Make sure capture message was what we sent!
-        assertEquals(msg.getOpCode(), send.getOpCode());
-        assertEquals(msg.getData(), "TESTING");
-        assertEquals(instance.getResponse().getSeqNum(), 5654);
-        assertEquals(instance.getResponse().getData(), "RETVAL");
-        assertEquals(instance.getResponse().getOpCode(), OperationCode.ACK_TRANSFER_RECORD);
+        assertEquals(m_ListOfMessages.size(), 1);
+        
+        for (Message msg : m_ListOfMessages) {
+            assertEquals(msg.getOpCode(), send.getOpCode());
+            assertEquals(msg.getData(), "TESTING");
+        }
 
-        m_Listener.Stop();
-        m_ListenerThread.join();
+        assertEquals(m_Socket.getResponse().getSeqNum(), 5654);
+        assertEquals(m_Socket.getResponse().getData(), "RETVAL");
+        assertEquals(m_Socket.getResponse().getOpCode(), OperationCode.ACK_TRANSFER_RECORD);
     }
 
     @Test
@@ -79,21 +98,63 @@ public class SocketTest implements RequestListener.Processor {
         InetAddress addr = InetAddress.getLoopbackAddress();
 
         // using invalid port 'ensures' we wont get an answer
-        Message send = new Message(OperationCode.TRANSFER_RECORD, 0, "TESTING", addr, 46873);
+        Message send = new Message(OperationCode.TRANSFER_RECORD, 0, Location.INVALID, "TESTING", addr, 46873);
         Socket instance = new Socket();
 
         assertEquals(false, instance.send(send, 5, 500));
+        assertEquals(m_ListOfMessages.size(), 0);
+        assertEquals(m_Socket.getResponse(), null);
+    }
+
+    @Test
+    public void testSendWithLocation() throws Exception {
+        Message send = new Message(OperationCode.GET_RECORD_COUNT, 456874, "LOCATION", TEST_ADDR);
+        send.setLocation(Location.CA);
+
+        assertEquals(true, m_Socket.send(send, 10, 1000));
+
+        // Make sure capture message was what we sent!
+        assertEquals(m_ListOfMessages.size(), 1);
+
+        for (Message msg : m_ListOfMessages) {
+            assertEquals(msg.getOpCode(), send.getOpCode());
+            assertEquals(msg.getData(), "LOCATION");
+            assertEquals(msg.getLocation(), Location.CA);
+        }
+
+        assertEquals(m_Socket.getResponse().getSeqNum(), 456874);
+        assertEquals(m_Socket.getResponse().getData(), "RETVAL");
+        assertEquals(m_Socket.getResponse().getOpCode(), OperationCode.ACK_GET_RECORD_COUNT);
+        assertEquals(m_Socket.getResponse().getLocation(), Location.CA);
+    }
+
+    @Test
+    public void testSendToLocation() throws Exception {
+        Message send = new Message(OperationCode.DOES_RECORD_EXIST, 98465, "EVERYWHERE", TEST_ADDR);
+
+        assertEquals(true, m_Socket.sendTo(Location.values(), send, 10, 1000));
+
+        // Make sure capture message was what we sent!
+        for (Message msg : m_ListOfMessages) {
+            assertEquals(msg.getOpCode(), send.getOpCode());
+            assertEquals(msg.getData(), "EVERYWHERE");
+            assertNotEquals(msg.getLocation(), Location.INVALID);
+        }
+
+        assertEquals(m_Socket.getResponse().getSeqNum(), 98465);
+        assertEquals(m_Socket.getResponse().getData(), "RETVAL");
+        assertEquals(m_Socket.getResponse().getOpCode(), OperationCode.ACK_DOES_RECORD_EXIST);
+        //assertEquals(m_Socket.getResponse().getLocation(), Location.CA);
     }
 
     @Override
     public String handleRequestMessage(Message msg) throws Exception {
-        this.msg = msg;
-
         int randomNum = ThreadLocalRandom.current().nextInt(0, 3);
         if (randomNum == 0) {
             throw new Exception("Dummy Exception");
         }
-
+        
+        this.m_ListOfMessages.add(msg);
         return "RETVAL";
     }
 }
