@@ -49,6 +49,10 @@ public enum Location {
     public static Location fromString(String location) {
 
         for (Location region : Location.values()) {
+            if (region == Location.INVALID) {
+                continue;
+            }
+            
             if ((region.getPrefix() == null ? location == null : region.getPrefix().equalsIgnoreCase(location))
                     || (region.toString() == null ? location == null : region.toString().equalsIgnoreCase(location))) {
                 return region;
@@ -60,6 +64,10 @@ public enum Location {
 
     public static boolean isValidLocation(String location) {
         for (Location loc : Location.values()) {
+            if (loc == Location.INVALID) {
+                continue;
+            }
+            
             if (loc.toString().equalsIgnoreCase(location)) {
                 return true;
             }
@@ -72,6 +80,10 @@ public enum Location {
         List<String> locations = new ArrayList<>();
 
         for (Location loc : values()) {
+            if (loc == Location.INVALID) {
+                continue;
+            }
+            
             locations.add(loc.toString());
         }
 
@@ -82,6 +94,10 @@ public enum Location {
         String out = "";
 
         for (Location loc : values()) {
+            if (loc == Location.INVALID) {
+                continue;
+            }
+            
             out += loc + ", ";
         }
 
