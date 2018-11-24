@@ -13,34 +13,21 @@ import java.io.Serializable;
  * Replicas will send:
  * 		sequenceID (same ID from the ClientRequest. Set by the Sequencer)
  * 		success (true/false)
- * 		response (Optional): Needed for getRecordCounts()
+ * 		response (Optional): Message to be logged and shown to the user.
  *
  */
 public class ReplicaResponse implements Serializable {
-	private int sequenceID;
 	private boolean success;
 	private String response;
 	
 	
-	public ReplicaResponse(int sequenceID, boolean success) {
-		super();
-		this.sequenceID = sequenceID;
+	public ReplicaResponse(boolean success) {
 		this.success = success;
 	}
 	
-	public ReplicaResponse(int sequenceID, boolean success, String response) {
-		super();
-		this.sequenceID = sequenceID;
+	public ReplicaResponse(boolean success, String response) {
 		this.success = success;
 		this.response = response;
-	}
-
-	public int getSequenceID() {
-		return sequenceID;
-	}
-
-	public void setSequenceID(int sequenceID) {
-		this.sequenceID = sequenceID;
 	}
 
 	public boolean isSuccess() {
@@ -61,6 +48,6 @@ public class ReplicaResponse implements Serializable {
 
 	@Override
 	public String toString() {
-		return "ReplicaResponse [sequenceID=" + sequenceID + ", success=" + success + ", response=" + response + "]";
+		return "ReplicaResponse [success=" + success + ", response=" + response + "]";
 	}
 }

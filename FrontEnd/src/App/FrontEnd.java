@@ -1,4 +1,4 @@
-/* 
+/*
     MIT License
 
     Copyright (c) 2018 Chris Mc, prince.chrismc(at)gmail(dot)com
@@ -25,6 +25,10 @@ package App;
 
 import Models.AddressBook;
 import Models.Location;
+import UDP.Message;
+import UDP.RequestListener;
+import UDP.RequestListener.Processor;
+import UDP.Socket;
 import Utility.ClientRequest;
 import Utility.ReplicaResponse;
 import Interface.Corba.IFrontEnd;
@@ -39,7 +43,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.List;
@@ -56,12 +59,61 @@ import org.omg.PortableServer.POAHelper;
  *
  * @author cmcarthur
  */
-public class FrontEnd extends IFrontEndPOA implements Runnable {
+public class FrontEnd extends IFrontEndPOA {
 
-    private HashMap<Integer, List<ClientRequest>> responses = new HashMap<>();
-//    private InetAddress sequencerIP = AddressBook.SEQUENCER.getAddr();
-//    private int sequencerPort = AddressBook.SEQUENCER.getPort();
+	private ConsensusTracker consensusTracker = new ConsensusTracker(3);
+    private InetAddress sequencerIP = AddressBook.SEQUENCER.getAddr();
+    private int sequencerPort = AddressBook.SEQUENCER.getPort();
     private int frontEndPort = AddressBook.FRONTEND.getPort();
+
+    private class ReplicaResponseProcessor implements Processor {
+		@Override
+		public String handleRequestMessage(Message msg) throws Exception {
+			if (msg.getData().contains("ReplicaResponse")) {
+                ObjectInputStream iStream = new ObjectInputStream(new ByteArrayInputStream(msg.getData().getBytes()));
+                Object input = iStream.readObject();
+                ReplicaResponse replicaResponse;
+                iStream.close();
+
+                if (input instanceof ReplicaResponse) {
+                	replicaResponse = (ReplicaResponse) input;
+                }
+                else {
+                    throw new IOException("Data received is not valid.");
+                }
+
+                // TODO: What to do with ReplicaResponse
+                int sequenceID = msg.getSeqNum();
+                String answer = replicaResponse.getResponse();
+
+                RequestConsensus requestConsensus = consensusTracker.getRequestConsensus(sequenceID);
+
+                if(requestConsensus == null) {
+                	requestConsensus = new RequestConsensus(answer, msg.getAddress(), msg.getPort());
+                	consensusTracker.addRequestConsensus(sequenceID, requestConsensus);
+                }
+                else {
+                	requestConsensus.addAnswer(answer, msg.getAddress(), msg.getPort());
+
+                	if(requestConsensus.shouldSendConsensus()) {
+                		List<ReplicaInfo> softwareFailures = requestConsensus.getSoftwareFailures();
+
+                		if(softwareFailures.size() > 0) {
+                			for(ReplicaInfo replica: softwareFailures) {
+                				sendMulticastToRMs(replica.getReplicaAddress(), replica.getReplicaPort());
+                			}
+                    	}
+
+                		return requestConsensus.getConsensusAnswer();
+                	}
+                }
+            }
+            else {
+            	throw new IOException("Response is not a ReplicaResponse.");
+            }
+			return null;
+		}
+    }
 
     /**
      * @param args the command line arguments
@@ -88,8 +140,7 @@ public class FrontEnd extends IFrontEndPOA implements Runnable {
 
             // get object reference from the servant
             FrontEnd frontEnd = new FrontEnd();
-            Thread frontEnd_thread = new Thread(frontEnd);
-            frontEnd_thread.start();	// Start Front-end UDP server
+            frontEnd.startUDPListener();	// Start Front-end UDP server
 
             org.omg.CORBA.Object ref = rootpoa.servant_to_reference(frontEnd);
             IFrontEnd href = IFrontEndHelper.narrow(ref);
@@ -172,96 +223,69 @@ public class FrontEnd extends IFrontEndPOA implements Runnable {
         return "";
     }
 
-    @Override
-    public void softwareFailure(String managerID) {
-        ClientRequest request = setupClientRequest(managerID);
-        sendRequestToSequencer(request);
+	@Override
+	public void softwareFailure(String managerID) {
+		ClientRequest request = setupClientRequest(managerID);
+		sendRequestToSequencer(request);
+	}
+
+	@Override
+	public void replicaCrash(String managerID) {
+		consensusTracker.decrementConsensusCountNeeded();
+
+		ClientRequest request = setupClientRequest(managerID);
+		sendRequestToSequencer(request);
+	}
+
+	private ClientRequest setupClientRequest(String managerID) {
+		String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+		String location = managerID.substring(0, 2);
+
+		return new ClientRequest(methodName, location);
+	}
+
+	private void sendRequestToSequencer(ClientRequest clientRequest) {
+		System.out.println(clientRequest);
+
+    	ByteArrayOutputStream bStream = new ByteArrayOutputStream();
+        ObjectOutput oo;
+
+		try {
+			oo = new ObjectOutputStream(bStream);
+			oo.writeObject(clientRequest);
+	        oo.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+        byte[] serializedMessage = bStream.toByteArray();
+
+        DatagramPacket requestPacket = new DatagramPacket(serializedMessage, serializedMessage.length, sequencerIP, sequencerPort);
+
+		sendUDPRequest(requestPacket);
+	}
+
+	private void sendMulticastToRMs(InetAddress replicaIP, int replicaPort) {
+
+	}
+
+    private void sendUDPRequest(DatagramPacket requestPacket) {
+    	Message messageToSend = new Message(requestPacket);
+
+    	try {
+    		Socket socket = new Socket();
+			socket.send(messageToSend, 5, 2000);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
     }
 
-    @Override
-    public void replicaCrash(String managerID) {
-        ClientRequest request = setupClientRequest(managerID);
-        sendRequestToSequencer(request);
-    }
+    // Starts the UDP RequestListener to receive the responses from the Replicas
+    public void startUDPListener() {
+    	Processor requestProcessor = new ReplicaResponseProcessor();
+    	RequestListener requestListener = new RequestListener(requestProcessor, AddressBook.REPLICAS);
+    	requestListener.run();
 
-    private void sendRequestToSequencer(ClientRequest request) {
-        try {
-            System.out.println(request);
-            ByteArrayOutputStream bStream = new ByteArrayOutputStream();
-            ObjectOutput oo = new ObjectOutputStream(bStream);
-            oo.writeObject(request);
-            oo.close();
-
-            byte[] serializedMessage = bStream.toByteArray();
-//			sendUDPRequest(serializedMessage, InetAddress.getByName(sequencerIP), sequencerPort);
-            // TODO: Use Reliable UDP instead
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private ClientRequest setupClientRequest(String managerID) {
-        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-        String location = managerID.substring(0, 2);
-
-        return new ClientRequest(methodName, location);
-    }
-
-    private String sendUDPRequest(byte[] message, InetAddress host, int port) throws IOException {
-        DatagramSocket aSocket = new DatagramSocket();
-
-        DatagramPacket request = new DatagramPacket(message, message.length, host, port);
-        aSocket.send(request);
-
-        byte[] buffer = new byte[1000];
-        DatagramPacket reply = new DatagramPacket(buffer, buffer.length);
-        aSocket.receive(reply);
-
-        aSocket.close();
-
-        return new String(reply.getData()).trim();
-    }
-
-    // Runs UDP Server
-    public void run() {
-        DatagramSocket aSocket = null;
-
-        try {
-            System.out.println("Front-end started to listen for UDP requests on port: " + frontEndPort);
-
-            aSocket = new DatagramSocket(frontEndPort);
-            byte[] buffer = new byte[1000];
-
-            while (true) {
-                DatagramPacket resultPacket = new DatagramPacket(buffer, buffer.length);
-                String replicaResponse;
-
-                aSocket.receive(resultPacket);
-                replicaResponse = new String(resultPacket.getData()).trim();
-
-                if (replicaResponse.contains("ReplicaResponse")) {
-                    ObjectInputStream iStream = new ObjectInputStream(new ByteArrayInputStream(resultPacket.getData()));
-                    Object input = iStream.readObject();
-                    ReplicaResponse dataReceived;
-                    iStream.close();
-
-                    if (input instanceof ReplicaResponse) {
-                        dataReceived = (ReplicaResponse) input;
-                    } else {
-                        throw new IOException("Data received is not valid.");
-                    }
-
-                    // TODO: What to do with ReplicaResponse
-                } else {
-                    throw new IOException("Response is not a ReplicaResponse.");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (aSocket != null) {
-                aSocket.close();
-            }
-        }
+    	System.out.println("Front-end started to listen for UDP requests on port: " + frontEndPort);
     }
 }

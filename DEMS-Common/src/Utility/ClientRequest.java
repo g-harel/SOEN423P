@@ -26,13 +26,9 @@ import java.util.HashMap;
  * 					project: Project(...),
  * 					location: CA
  * 				}
- * 
- * 
- * The Sequencer will call the setSequenceID method and multicast the ClientRequest object to the Replicas.
  *
  */
 public class ClientRequest implements Serializable {
-	private int sequenceID;
 	private String method;
 	private String location;
 	private HashMap<String, Object> data = new HashMap<>();
@@ -41,14 +37,6 @@ public class ClientRequest implements Serializable {
 	public ClientRequest(String method, String location) {
 		this.method = method;
 		this.location = location;
-	}
-	
-	public int getSequenceID() {
-		return sequenceID;
-	}
-	
-	public void setSequenceID(int sequenceID) {
-		this.sequenceID = sequenceID;
 	}
 
 	public String getMethod() {
@@ -77,7 +65,6 @@ public class ClientRequest implements Serializable {
 
 	@Override
 	public String toString() {
-		return "ClientRequest [sequenceID=" + sequenceID + ", method=" + method + ", location=" + location + ", data="
-				+ data + "]";
+		return "ClientRequest [method=" + method + ", location=" + location + ", data=" + data + "]";
 	}
 }
