@@ -62,7 +62,7 @@ public class Message {
     
     // This should not be called!
     // Used for decomposing correctly formatted requests
-    public Message(DatagramPacket packet) {
+    protected Message(DatagramPacket packet) {
 
         String payload = new String(packet.getData(), 0, packet.getLength());
 
@@ -76,7 +76,7 @@ public class Message {
 
     // This should not be called!
     // This should only be used by RequestListener
-    public Message(OperationCode code, int seq, String data, InetAddress addr, int port) {
+    protected Message(OperationCode code, int seq, String data, InetAddress addr, int port) {
         this.m_Code = code;
         this.m_SeqNum = seq;
         this.m_Data = data;
