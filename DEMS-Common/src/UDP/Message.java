@@ -46,6 +46,7 @@ public class Message {
     private InetAddress m_Addr;
     private int m_Port;
 
+    // @warning max data.length is 2048 bytes !
     // Main entry point for initiating communication, See Socket for an example
     public Message(OperationCode code, int seq, String data, AddressBook addrInfo) throws Exception {
         if(data.length() >= 2048){
