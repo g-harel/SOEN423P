@@ -56,7 +56,7 @@ public class SocketTest implements RequestListener.Processor {
         m_ListenerThread.start();
         m_Listener.Wait();
 
-        Message send = new Message(OperationCode.TRANSFER_RECORD, 0, "TESTING", TEST_ADDR);
+        Message send = new Message(OperationCode.TRANSFER_RECORD, 5654, "TESTING", TEST_ADDR);
         Socket instance = new Socket();
 
         assertEquals(true, instance.send(send, 10, 1000));
@@ -64,6 +64,7 @@ public class SocketTest implements RequestListener.Processor {
         // Make sure capture message was what we sent!
         assertEquals(msg.getOpCode(), send.getOpCode());
         assertEquals(msg.getData(), "TESTING");
+        assertEquals(instance.getResponse().getSeqNum(), 5654);
         assertEquals(instance.getResponse().getData(), "RETVAL");
         assertEquals(instance.getResponse().getOpCode(), OperationCode.ACK_TRANSFER_RECORD);
 
