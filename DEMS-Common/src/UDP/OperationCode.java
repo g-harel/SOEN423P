@@ -1,4 +1,4 @@
-/* 
+/*
     MIT License
 
     Copyright (c) 2018 Chris Mc, prince.chrismc(at)gmail(dot)com
@@ -29,11 +29,11 @@ package UDP;
  */
 public enum OperationCode {
     INVALID(-1),
-    
-    // For FE-SEQ
-    SERIALIZE(1011),
-    ACK_SERIALIZE(3011),
-    
+
+    // For RM-SEQ
+    DUMP(1131),
+    ACK_DUMP(3131),
+
     // For FE-PI Communication
     CREATE_MANAGER_RECORD(1001),
     ACK_CREATE_MANAGER_RECORD(3001),
@@ -45,7 +45,7 @@ public enum OperationCode {
     ACK_DOES_RECORD_EXIST(3003),
     TRANSFER_RECORD(1004),
     ACK_TRANSFER_RECORD(3004),
-    
+
     // For PI-FE
     OPERATION_RETVAL(1025),
     ACK_OPERATION_RETVAL(3025),
@@ -55,7 +55,7 @@ public enum OperationCode {
     ACK_NO_RESP_NOTIFICATION(3201),
     FAULY_RESP_NOTIFICATION(1202),
     ACK_FAULY_RESP_NOTIFICATION(3202),
-	
+
 	//For RM-RE
 	RESTORE_ORDER_NOTIFICATION(1666),
 	ACK_RESTORE_ORDER_NOTIFICATION(3666),
@@ -70,25 +70,25 @@ public enum OperationCode {
     public String toString() {
         return "" + m_Value;
     }
-    
+
     public OperationCode toAck(){
         if( m_Value < 3000 ){
             switch( this ){
                 case SERIALIZE: return ACK_SERIALIZE;
-                
-                case CREATE_MANAGER_RECORD: return ACK_CREATE_MANAGER_RECORD;
-                case CREATE_EMPLOYEE_RECORD: return ACK_CREATE_EMPLOYEE_RECORD;
+                case DUMP: return ACK_DUMP;
+
+
                 case GET_RECORD_COUNT: return ACK_GET_RECORD_COUNT;
                 case DOES_RECORD_EXIST: return ACK_DOES_RECORD_EXIST;
                 case TRANSFER_RECORD: return ACK_TRANSFER_RECORD;
-                
+
                 case OPERATION_RETVAL: return ACK_OPERATION_RETVAL;
-                
+
                 case NO_RESP_NOTIFICATION: return ACK_NO_RESP_NOTIFICATION;
                 case FAULY_RESP_NOTIFICATION: return ACK_FAULY_RESP_NOTIFICATION;
                 case RESTORE_ORDER_NOTIFICATION: return ACK_RESTORE_ORDER_NOTIFICATION;
                 case RESTART_ORDER_NOTIFICATION: return ACK_RESTART_ORDER_NOTIFICATION;
-                
+
                 default: return INVALID;
             }
         }
