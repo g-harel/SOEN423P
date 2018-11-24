@@ -181,6 +181,6 @@ public class RequestListener implements Runnable {
 
         InetAddress address = request.getAddress();
         int port = request.getPort();
-        return new Message(responseCode, 0, responsePayload, address, port);
+        return new Message(responseCode, request.getSeqNum(), responsePayload, address, port);
     }
 }
