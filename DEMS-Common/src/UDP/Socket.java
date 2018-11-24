@@ -23,6 +23,7 @@
  */
 package UDP;
 
+import Models.Location;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -31,17 +32,17 @@ import java.net.SocketException;
 /**
  *
  * @author cmcarthur
- * 
+ *
  * EXAMPLE USAGE:
- * 
- * public void foo() {
- *     Socket instance = new Socket();
- *     Message send = new Message(OperationCode.TRANSFER_RECORD, // The operation you'd like to perform
- *                                0,                             // The Sequence Number, will only be Zero between FE and SEQ, otherwise copy from request
- *                                "TESTING",                     // The beautiful message you'd like pass ( as a string )
- *                                TEST_ADDR);                    // You the message is intended for
- * }
- * 
+ *
+ * public void foo() { Socket instance = new Socket(); Message send = new
+ * Message(OperationCode.TRANSFER_RECORD, // The operation you'd like to perform
+ * 0, // The Sequence Number, will only be Zero between FE and SEQ, otherwise
+ * copy from request "TESTING", // The beautiful message you'd like pass ( as a
+ * string ) TEST_ADDR); // You the message is intended for
+ *
+ * if( ! instance.Send(send, 10, 1000) ) { throw new Exception("Failed to
+ * communicate with " + TEST_ADDR.toString() ); } }
  */
 public class Socket {
 
@@ -57,6 +58,8 @@ public class Socket {
     }
 
     /*
+    for when you need to communicate and dont care who ACKs
+    
     @msg the message
     @retryCounter Number of times to retry, (ie 10 for 10 attempts)
     @timeout time to wait for ack to arrive
@@ -73,6 +76,10 @@ public class Socket {
                 throw new Exception("RUDP: Rx a message but wasnt the correct ACK OpCode");
             }
 
+            if (hopefulAck.getLocation() != msg.getLocation()) {
+                throw new Exception("RUDP: Rx a message but Location did not match");
+            }
+
             response = hopefulAck;
 
         } catch (Exception ex) {
@@ -85,6 +92,34 @@ public class Socket {
         }
 
         return true;
+    }
+
+    /*
+    for when you need to with specific location!
+    
+    @locations will send to an array of locatiions, ignores INVALID... simply pass Location.values()
+    @msg the message
+    @retryCounter Number of times to retry, (ie 10 for 10 attempts)
+    @timeout time to wait for ack to arrive
+    @return true is send was answered with ack otherwise false
+    @throws error when failing to send ( should not occure )
+     */
+    public boolean sendTo(Location[] locations, Message msg, int retryCounter, int timeout) throws Exception {
+        boolean retval = true;
+
+        for (Location loc : locations) {
+            if (loc == Location.INVALID) {
+                continue;
+            }
+
+            msg.setLocation(loc);
+            if (!send(msg, retryCounter, timeout)) {
+                retval = false;
+                //throw new Exception("Failed to communicate with " + loc.toString());
+            }
+        }
+
+        return retval;
     }
 
     private void sendRaw(Message request) throws IOException {

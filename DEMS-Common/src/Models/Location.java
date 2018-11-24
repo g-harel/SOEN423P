@@ -31,14 +31,14 @@ import java.util.List;
  * @author cmcarthur
  */
 public enum Location {
+    INVALID(0, "Invalid", "Invalid"),
     CA(6000, "Canada", "CA"),
     US(6001, "United-States", "US"),
     UK(6002, "United-Kingdom", "UK");
 
-	private final int m_UUID;
-	private final String m_Name;
-	private final String m_Prefix;
-	
+    private final int m_UUID;
+    private final String m_Name;
+    private final String m_Prefix;
 
     private Location(int ID, String name, String prefix) {
         m_UUID = ID;
@@ -46,50 +46,50 @@ public enum Location {
         m_Prefix = prefix;
     }
 
-    public static Location fromString(String location) throws Exception {
-    	
-    	for (Location region : Location.values()) {
-    		if ((region.getPrefix() == null ? location == null : region.getPrefix().equalsIgnoreCase(location))
-    				|| (region.toString() == null ? location == null : region.toString().equalsIgnoreCase(location))) {
-    			return region;
-    		}
-    	}
-    	
-    	throw new Exception("Invalid Location!");
+    public static Location fromString(String location) {
+
+        for (Location region : Location.values()) {
+            if ((region.getPrefix() == null ? location == null : region.getPrefix().equalsIgnoreCase(location))
+                    || (region.toString() == null ? location == null : region.toString().equalsIgnoreCase(location))) {
+                return region;
+            }
+        }
+
+        return INVALID;
     }
-    
+
     public static boolean isValidLocation(String location) {
-        for (Location loc: Location.values()) {
+        for (Location loc : Location.values()) {
             if (loc.toString().equalsIgnoreCase(location)) {
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     public static List<String> getLocationsAsStrings() {
         List<String> locations = new ArrayList<>();
-        
-        for (Location loc: values()) {
+
+        for (Location loc : values()) {
             locations.add(loc.toString());
         }
-        
+
         return locations;
     }
-    
+
     public static String printLocations() {
         String out = "";
-    
-        for (Location loc: values()) {
+
+        for (Location loc : values()) {
             out += loc + ", ";
         }
-        
+
         out = out.substring(0, out.length() - 2);
-    
+
         return out;
     }
-    
+
     public int getPort() {
         return m_UUID;
     }
