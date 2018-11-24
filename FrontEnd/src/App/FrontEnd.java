@@ -26,6 +26,7 @@ package App;
 import Models.AddressBook;
 import Models.Location;
 import UDP.Message;
+import UDP.OperationCode;
 import UDP.RequestListener;
 import UDP.RequestListener.Processor;
 import UDP.Socket;
@@ -42,7 +43,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
-import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.List;
@@ -62,14 +62,34 @@ import org.omg.PortableServer.POAHelper;
 public class FrontEnd extends IFrontEndPOA {
 
 	private ConsensusTracker consensusTracker = new ConsensusTracker(3);
-    private InetAddress sequencerIP = AddressBook.SEQUENCER.getAddr();
-    private int sequencerPort = AddressBook.SEQUENCER.getPort();
-    private int frontEndPort = AddressBook.FRONTEND.getPort();
+	
 
     private class ReplicaResponseProcessor implements Processor {
+    	final private RequestListener m_Listener;
+    	private Thread m_ListenerThread;
+    	
+    	public ReplicaResponseProcessor() {
+    		m_Listener = new RequestListener(this, AddressBook.FRONTEND);
+    	}
+    	
+		public void Launch(){
+			m_ListenerThread = new Thread(m_Listener);
+			m_ListenerThread.start();
+			m_Listener.Wait(); // Make sure it's running before getting any farther ( optional )
+		}
+		
+		public void Shutdown() {
+			m_Listener.Stop();
+			
+			try {
+				m_ListenerThread.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 		@Override
 		public String handleRequestMessage(Message msg) throws Exception {
-			if (msg.getData().contains("ReplicaResponse")) {
+			if (msg.getOpCode() == OperationCode.OPERATION_RETVAL && msg.getData().contains("ReplicaResponse")) {
                 ObjectInputStream iStream = new ObjectInputStream(new ByteArrayInputStream(msg.getData().getBytes()));
                 Object input = iStream.readObject();
                 ReplicaResponse replicaResponse;
@@ -81,8 +101,7 @@ public class FrontEnd extends IFrontEndPOA {
                 else {
                     throw new IOException("Data received is not valid.");
                 }
-
-                // TODO: What to do with ReplicaResponse
+                
                 int sequenceID = msg.getSeqNum();
                 String answer = replicaResponse.getResponse();
 
@@ -109,7 +128,9 @@ public class FrontEnd extends IFrontEndPOA {
                 }
             }
             else {
-            	throw new IOException("Response is not a ReplicaResponse.");
+            	throw new IOException("The response received is not valid.\n" + 
+            							"Responses need to hava the OperationCode `" + OperationCode.OPERATION_RETVAL + "` and " +
+            							"a serialized ReplicaResponse object as data.");
             }
 			return null;
 		}
@@ -258,19 +279,18 @@ public class FrontEnd extends IFrontEndPOA {
 			e.printStackTrace();
 		}
 
-        byte[] serializedMessage = bStream.toByteArray();
-
-        DatagramPacket requestPacket = new DatagramPacket(serializedMessage, serializedMessage.length, sequencerIP, sequencerPort);
-
-		sendUDPRequest(requestPacket);
+        byte[] serializedClientRequest = bStream.toByteArray();
+        
+        
+		sendUDPRequest(serializedClientRequest);
 	}
 
 	private void sendMulticastToRMs(InetAddress replicaIP, int replicaPort) {
 
 	}
 
-    private void sendUDPRequest(DatagramPacket requestPacket) {
-    	Message messageToSend = new Message(requestPacket);
+    private void sendUDPRequest(byte[] serializedClientRequest) {    	
+    	Message messageToSend = new Message(OperationCode.SERIALIZE, 0, serializedClientRequest.toString(), AddressBook.SEQUENCER);
 
     	try {
     		Socket socket = new Socket();
@@ -283,9 +303,9 @@ public class FrontEnd extends IFrontEndPOA {
     // Starts the UDP RequestListener to receive the responses from the Replicas
     public void startUDPListener() {
     	Processor requestProcessor = new ReplicaResponseProcessor();
-    	RequestListener requestListener = new RequestListener(requestProcessor, AddressBook.REPLICAS);
+    	RequestListener requestListener = new RequestListener(requestProcessor, AddressBook.FRONTEND);
     	requestListener.run();
 
-    	System.out.println("Front-end started to listen for UDP requests on port: " + frontEndPort);
+    	System.out.println("Front-End started to listen for UDP requests on port: " + AddressBook.FRONTEND.getPort());
     }
 }
