@@ -92,7 +92,7 @@ public class Socket {
     }
 
     private Message receiveRaw(int timeout) throws IOException {
-        byte[] buf = new byte[256];
+        byte[] buf = new byte[2048];
         DatagramPacket packet = new DatagramPacket(buf, buf.length);
 
         socket.setSoTimeout(timeout); // Set timeout in case packet is lost

@@ -154,7 +154,7 @@ public class RequestListener implements Runnable {
     }
 
     private Message waitForIncommingMessage() {
-        byte[] buf = new byte[256];
+        byte[] buf = new byte[2048];
         DatagramPacket packet = new DatagramPacket(buf, buf.length);
         try {
             m_Socket.receive(packet);

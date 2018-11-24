@@ -47,8 +47,11 @@ public class Message {
     private int m_Port;
 
     // Main entry point for initiating communication, See Socket for an example
-
-    public Message(OperationCode code, int seq, String data, AddressBook addrInfo) {
+    public Message(OperationCode code, int seq, String data, AddressBook addrInfo) throws Exception {
+        if(data.length() >= 2048){
+            throw new Exception("data payload is too large!");
+        }
+        
         this.m_Code = code;
         this.m_SeqNum = seq;
         this.m_Data = data;
