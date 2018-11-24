@@ -46,6 +46,18 @@ public class Message {
     private InetAddress m_Addr;
     private int m_Port;
 
+    // Main entry point for initiating communication, See Socket for an example
+
+    public Message(OperationCode code, int seq, String data, AddressBook addrInfo) {
+        this.m_Code = code;
+        this.m_SeqNum = seq;
+        this.m_Data = data;
+        this.m_Addr = addrInfo.getAddr();
+        this.m_Port = addrInfo.getPort();
+    }
+    
+    // This should not be called!
+    // Used for decomposing correctly formatted requests
     public Message(DatagramPacket packet) {
 
         String payload = new String(packet.getData(), 0, packet.getLength());
@@ -58,14 +70,7 @@ public class Message {
         this.m_Port = packet.getPort();
     }
 
-    public Message(OperationCode code, int seq, String data, AddressBook addrInfo) {
-        this.m_Code = code;
-        this.m_SeqNum = seq;
-        this.m_Data = data;
-        this.m_Addr = addrInfo.getAddr();
-        this.m_Port = addrInfo.getPort();
-    }
-
+    // This should not be called!
     // This should only be used by RequestListener
     public Message(OperationCode code, int seq, String data, InetAddress addr, int port) {
         this.m_Code = code;

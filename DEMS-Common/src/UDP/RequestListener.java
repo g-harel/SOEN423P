@@ -32,15 +32,47 @@ import java.net.MulticastSocket;
 /**
  *
  * @author cmcarthur
+ * 
+ * EXAMPLE USAGE:
+ * 
+ * public class Example implements RequestListener.Processor {
+ * 
+ * final private RequestListener m_Listener;
+ * private Thread m_ListenerThread;
+ * 
+ * public Example() {
+ *     m_Listener = new RequestListener(this, TEST_ADDR);
+ * }
+ * 
+ * public void Launch(){
+ *     m_ListenerThread = new Thread(m_Listener);
+ *     m_ListenerThread.start();
+ *     m_Listener.Wait(); // Make sure it's running before getting any farther ( optional )
+ * }
+ * 
+ * public void Shutdown() {
+ *     m_Listener.Stop();
+ *     m_ListenerThread.join();
+ * }
+ * 
+ * @Override
+ * public String handleRequestMessage(Message msg) throws Exception {
+ *     // Do some magical work with msg ( aka save a copy or switch on operation code )
+ *     if (msg == incorrect) {
+ *         throw new Exception("Explination why its wrong here");
+ *     }
+ *     return "SUCCESS MESSSAGE - HELLO WORLD!";
+ * }
+ * 
  */
 public class RequestListener implements Runnable {
 
     public interface Processor {
 
-        /*
-        @msg the new incomming request
-        @return the payload/data to respond
-        @throws the error message to reply
+        /**
+         * @param msg the new incomming request
+         * @return the payload/data to respond
+         * @throws Exception the error message to reply
          */
         public String handleRequestMessage(Message msg) throws Exception;
     }
@@ -54,6 +86,10 @@ public class RequestListener implements Runnable {
 
     private MulticastSocket m_Socket;
 
+    /**
+     * @param handler the callback to process new request messages
+     * @param address your local address you want to listen from
+     */
     public RequestListener(Processor handler, AddressBook address) {
         m_Handler = handler;
         m_Address = address;

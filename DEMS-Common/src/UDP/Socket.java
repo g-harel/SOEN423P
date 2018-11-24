@@ -31,11 +31,22 @@ import java.net.SocketException;
 /**
  *
  * @author cmcarthur
+ * 
+ * EXAMPLE USAGE:
+ * 
+ * public void foo() {
+ *     Socket instance = new Socket();
+ *     Message send = new Message(OperationCode.TRANSFER_RECORD, // The operation you'd like to perform
+ *                                0,                             // The Sequence Number, will only be Zero between FE and SEQ, otherwise copy from request
+ *                                "TESTING",                     // The beautiful message you'd like pass ( as a string )
+ *                                TEST_ADDR);                    // You the message is intended for
+ * }
+ * 
  */
 public class Socket {
 
-    DatagramSocket socket;
-    Message response;
+    private DatagramSocket socket;
+    private Message response;
 
     public Socket() throws SocketException {
         this.socket = new DatagramSocket();
@@ -50,23 +61,23 @@ public class Socket {
     @retryCounter Number of times to retry, (ie 10 for 10 attempts)
     @timeout time to wait for ack to arrive
     @return true is send was answered with ack otherwise false
+    @throws error when failing to send ( should not occure )
      */
-    public boolean send(Message msg, int retryCounter, int timeout) throws Exception {
-
+    public boolean send(Message msg, int retryCounter, int timeout) throws IOException {
         sendRaw(msg); // Dont catch this exception, likely to be the internal socket is bad
 
         try {
             Message hopefulAck = receiveRaw(timeout);
 
             if (hopefulAck.getOpCode() != msg.getOpCode().toAck()) {
-                throw new Exception("RUDP: Rx an message but wasnt the correct ACK OpCode");
+                throw new Exception("RUDP: Rx a message but wasnt the correct ACK OpCode");
             }
-            
+
             response = hopefulAck;
 
-        } catch (Exception e) {
+        } catch (Exception ex) {
             if (--retryCounter > 0) {
-                // TO DO: Maybe print for debugging =?
+                System.out.println(" Attempt #" + retryCounter + " failed due to: " + ex.getMessage());
                 return send(msg, retryCounter, timeout);
             } else {
                 return false;
