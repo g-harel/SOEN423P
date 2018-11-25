@@ -12,8 +12,12 @@ public class ManagerHub  implements RequestListener.Processor {
 	
 	final private RequestListener managerListener;
 	private Thread managerListenerThread;
+	private ManagerMessageHandler handler;
+	
 	public ManagerHub(AddressBook listenForAddress) {
 		this.managerListener = new RequestListener(this, listenForAddress);
+		handler = new ManagerMessageHandler();
+		
 	}
 	
 	/**
@@ -25,25 +29,7 @@ public class ManagerHub  implements RequestListener.Processor {
 	 */
 		@Override
 		public String handleRequestMessage(Message msg) throws Exception {
-			switch(msg.getOpCode()) {
-			case NO_RESP_NOTIFICATION:
-				System.out.println("No Resp Notif");
-				msg.get
-				break;
-			case ACK_NO_RESP_NOTIFICATION:
-				System.out.println("Ack Resp");
-				break;
-			case FAULY_RESP_NOTIFICATION:
-				System.out.println("FAULY RESP Notification");
-				break;
-			case ACK_FAULY_RESP_NOTIFICATION:
-				System.out.println("Acknowledge Fauly Resp. Notif");
-				break;
-			default:
-				System.out.println("Operation not recognized");
-				break;
-			}
-			return null;
+				return this.handleRequestMessage(msg);
 		}
 		
 		public void Launch() {
