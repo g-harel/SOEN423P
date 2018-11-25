@@ -1,4 +1,4 @@
-package Manager;
+package model;
 
 public enum RegisteredReplica {
 	ReplicaGab,
