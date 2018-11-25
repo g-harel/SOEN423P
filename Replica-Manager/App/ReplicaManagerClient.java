@@ -9,8 +9,8 @@ import Manager.Manager;
  *
  */
 
-public class App {
-	public App() {
+public class ReplicaManagerClient {
+	public ReplicaManagerClient() {
 		super();
 	}
 	

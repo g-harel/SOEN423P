@@ -36,10 +36,14 @@ public class Manager {
 		//TODO: Add failure to stack, if stack full launch reset and empty stack
 		try {
 			nonByzantineFailStack.push(seqId);
+			return "Failure registrered";
 		}catch(StackOverflowError stackOver) {
+			// It means the stack is full we should restart the Replica
+			nonByzantineFailStack.empty();
+			return restartReplica();
 			
 		}catch(Exception ee) {
-			
+			System.out.println("Error while registerNonByzFailure " + ee.getMessage());
 		}
 		return null;
 	}
@@ -49,6 +53,16 @@ public class Manager {
 	 */
 	public String registerCrashFailure(int seqId) {
 		//TODO: Register failure, if stack full launch launch reset and empty stack
+		try {
+			crashFailStack.push(seqId);
+		}catch(StackOverflowError stackOver) {
+			// It means the stack is full we should restart the Replica
+			crashFailStack.empty();
+			return restoreReplicaBack();
+			
+		}catch(Exception ee) {
+			System.out.println("Error while registerCrashFailure " + ee.getMessage());
+		}
 		return null;
 	}
 	/**
