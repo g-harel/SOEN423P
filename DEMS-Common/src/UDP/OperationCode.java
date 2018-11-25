@@ -54,7 +54,13 @@ public enum OperationCode {
     NO_RESP_NOTIFICATION(1201),
     ACK_NO_RESP_NOTIFICATION(3201),
     FAULY_RESP_NOTIFICATION(1202),
-    ACK_FAULY_RESP_NOTIFICATION(3202);
+    ACK_FAULY_RESP_NOTIFICATION(3202),
+	
+	//For RM-RE
+	RESTORE_ORDER_NOTIFICATION(1666),
+	ACK_RESTORE_ORDER_NOTIFICATION(3666),
+	RESTART_ORDER_NOTIFICATION(1007),
+	ACK_RESTART_ORDER_NOTIFICATION(3007);
 
     private OperationCode(int val) {
         m_Value = val;
@@ -80,6 +86,8 @@ public enum OperationCode {
                 
                 case NO_RESP_NOTIFICATION: return ACK_NO_RESP_NOTIFICATION;
                 case FAULY_RESP_NOTIFICATION: return ACK_FAULY_RESP_NOTIFICATION;
+                case RESTORE_ORDER_NOTIFICATION: return ACK_RESTORE_ORDER_NOTIFICATION;
+                case RESTART_ORDER_NOTIFICATION: return ACK_RESTART_ORDER_NOTIFICATION;
                 
                 default: return INVALID;
             }
