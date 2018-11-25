@@ -14,13 +14,6 @@ public class App {
 		super();
 	}
 	
-	public void registerNewManager(String managerName) {
-		//TOOD: Add Paremeter to Manager...
-		Manager manager = new Manager();
-		ManagersMap.addManager(manager);
-		
-	}
-	
 	public void start() {
 		//TODO: Start a thread for each Manager registered...for each start	
 	}

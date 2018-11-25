@@ -6,7 +6,8 @@ public interface IManager {
 	 * Each Replica have a Replica Manager manager, identified by replica Name
 	 * @return replica name
 	 */
-	public String getReplicaName();
+	
+	public String getAssociatedReplicaName();
 	
 	/**
 	 * Register a non byzantine failure, can trigger a restart (if stack is full)
