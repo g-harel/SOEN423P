@@ -32,28 +32,39 @@ public class Manager {
 	 * Should return message with FAULY_RESP_NOTIFICATION
 	 * @param seqId
 	 */
-	public void registerNonByzFailure(int seqId) {
+	public String registerNonByzFailure(int seqId) {
 		//TODO: Add failure to stack, if stack full launch reset and empty stack
+		try {
+			nonByzantineFailStack.push(seqId);
+		}catch(StackOverflowError stackOver) {
+			
+		}catch(Exception ee) {
+			
+		}
+		return null;
 	}
 	/**
 	 * Should return message with ACK_NO_RESP_NOTIFICATION
 	 * @param seqId
 	 */
-	public void registerCrashFailure(int seqId) {
+	public String registerCrashFailure(int seqId) {
 		//TODO: Register failure, if stack full launch launch reset and empty stack
+		return null;
 	}
 	/**
 	 * Will Call the right replica to restore from a log file
 	 */
-	public void restoreReplicaBack() {
+	public String restoreReplicaBack() {
 		//TODO: Ask sequencer to restore replica from log file
+		return null;
 	}
 	
 	/**
 	 * Will simply restart replica attempts to repair it...
 	 */
-	public void restartReplica() {
+	public String restartReplica() {
 		//TODO: Send message to the target replica to restart
+		return null;
 	}
 
 	

@@ -13,20 +13,20 @@ public interface IManager {
 	 * Register a non byzantine failure, can trigger a restart (if stack is full)
 	 * @param seqId
 	 */
-	public void registerNonByzFailure(int seqId);
+	public String registerNonByzFailure(int seqId);
 	/**
 	 * Register a crash failure, trigger a restart
 	 * @param seqId
 	 */
-	public void registerCrashFailure(int seqId) ;
+	public String registerCrashFailure(int seqId) ;
 	/**
 	 * Ask the sequencer to replay the log to its replica for CATCH UP
 	 */
-	public void restoreReplicaBack();
+	public String restoreReplicaBack();
 	/**
 	 * Ask Replica to restart
 	 */
-	public void restartReplica();
+	public String restartReplica();
 	
 	
 
