@@ -26,14 +26,14 @@ public class Manager {
 	
 	}
 	
-	public String getAssociatedReplicaName() {
+	public  String getAssociatedReplicaName() {
 		return this.associatedReplica.toString();
 	}
 	/**
 	 * Should return message with FAULY_RESP_NOTIFICATION
 	 * @param seqId
 	 */
-	public String registerNonByzFailure(int seqId) {
+	public synchronized String registerNonByzFailure(int seqId) {
 		try {
 			//TODO: Add logging here
 			nonByzantineFailStack.push(seqId);
@@ -52,7 +52,7 @@ public class Manager {
 	 * Should return message with ACK_NO_RESP_NOTIFICATION
 	 * @param seqId
 	 */
-	public String registerCrashFailure(int seqId) {
+	public synchronized String registerCrashFailure(int seqId) {
 		try {
 			//TODO: Add logging here
 			return restoreReplicaBack(seqId);
