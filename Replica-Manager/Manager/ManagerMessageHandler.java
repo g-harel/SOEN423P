@@ -1,5 +1,7 @@
 package Manager;
 
+import java.util.HashMap;
+
 import UDP.Message;
 import model.ManagersMap;
 import model.RegisteredReplica;
@@ -25,7 +27,7 @@ public class ManagerMessageHandler {
 		}
 		
 		// Grab the manager current instance
-		ManagersMap currentManagers = ManagersMap.getManagers();
+		HashMap<RegisteredReplica, Manager> currentManagers = ManagersMap.getManagersMap();
 		Manager currentManager = currentManagers.get(replicaFound);
 		
 		// Do action based on msg...

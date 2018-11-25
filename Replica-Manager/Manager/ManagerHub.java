@@ -15,9 +15,9 @@ public class ManagerHub  implements RequestListener.Processor {
 	final private RequestListener managerListener;
 	private Thread managerListenerThread;
 	private ManagerMessageHandler handler;
-	
-	public ManagerHub(AddressBook listenForAddress) {
-		this.managerListener = new RequestListener(this, listenForAddress);
+	private static final AddressBook defaultAddressReceiving = AddressBook.MANAGER;
+	public ManagerHub() {
+		this.managerListener = new RequestListener(this,defaultAddressReceiving  );
 		handler = new ManagerMessageHandler();
 		
 	}

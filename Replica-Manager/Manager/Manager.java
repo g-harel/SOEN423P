@@ -20,8 +20,9 @@ public class Manager {
 		this.associatedReplica = associatedReplica;
 		
 		// Create a place to store non-byz. failure
-		nonByzantineFailStack.setSize(nonByzantineFailureTolerance);
+
 		this.nonByzantineFailStack = new Stack<Integer>();
+		nonByzantineFailStack.setSize(nonByzantineFailureTolerance);
 	
 	}
 	
