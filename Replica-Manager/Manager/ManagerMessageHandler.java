@@ -32,16 +32,13 @@ public class ManagerMessageHandler {
 		switch(msg.getOpCode()) {
 		case NO_RESP_NOTIFICATION:
 			System.out.println("No Resp Notif");
-			//TODO: Add logging here
 			return currentManager.registerCrashFailure(msg.getSeqNum());
 		case FAULY_RESP_NOTIFICATION:
 			System.out.println("FAULY RESP Notification");
-			//TODO: Add logging here
 			return currentManager.registerNonByzFailure(msg.getSeqNum());
 
 		default:
 			System.out.println("Operation not recognized");
-			//TODO: Add logging here
 			break;
 		}
 		return null;
