@@ -3,6 +3,8 @@ package Manager;
 import Models.AddressBook;
 import UDP.Message;
 import UDP.RequestListener;
+import model.ManagersMap;
+import model.RegisteredReplica;
 /**
  * This class is receiving data and redirect to the right manager
  * @author winterhart
@@ -23,22 +25,29 @@ public class ManagerHub  implements RequestListener.Processor {
 	/**
 	 *  Operation Handled:
 	 *  NO_RESP_NOTIFICATION(1201),
-	 *  ACK_NO_RESP_NOTIFICATION(3201),
 	 *  FAULY_RESP_NOTIFICATION(1202),
-	 *  ACK_FAULY_RESP_NOTIFICATION(3202);
 	 */
 		@Override
 		public String handleRequestMessage(Message msg) throws Exception {
-				return this.handleRequestMessage(msg);
+				return handler.HandleRequest(msg);
 		}
 		
-		public void Launch() {
+		public void launch() {
+			
+			//TODO: Should we restore saved state Manager 
+			// Add all Manager to the ManagersMap
+			for(RegisteredReplica replicaName : RegisteredReplica.values()) {
+				Manager manager = new Manager(replicaName);
+				ManagersMap.addManager(replicaName, manager);
+			}
 			managerListenerThread = new Thread(managerListener);
 			managerListenerThread.start();
 			//managerListenerThread.wait();
 		}
 		
-		public void Shutdown() {
+		public void shutdown() {
+			//TODO: Save state of the Manager in ManagersMap before quit ???
+			
 			managerListener.Stop();
 			try {
 				managerListenerThread.join();

@@ -2,6 +2,8 @@ package Manager;
 
 import java.util.Stack;
 
+import model.RegisteredReplica;
+
 public class Manager {
 	
 	//The replica linked to the manager
@@ -26,19 +28,30 @@ public class Manager {
 	public String getAssociatedReplicaName() {
 		return this.associatedReplica.toString();
 	}
-	
+	/**
+	 * Should return message with FAULY_RESP_NOTIFICATION
+	 * @param seqId
+	 */
 	public void registerNonByzFailure(int seqId) {
 		//TODO: Add failure to stack, if stack full launch reset and empty stack
 	}
-	
+	/**
+	 * Should return message with ACK_NO_RESP_NOTIFICATION
+	 * @param seqId
+	 */
 	public void registerCrashFailure(int seqId) {
 		//TODO: Register failure, if stack full launch launch reset and empty stack
 	}
-	
+	/**
+	 * Will Call the right replica to restore from a log file
+	 */
 	public void restoreReplicaBack() {
 		//TODO: Ask sequencer to restore replica from log file
 	}
 	
+	/**
+	 * Will simply restart replica attempts to repair it...
+	 */
 	public void restartReplica() {
 		//TODO: Send message to the target replica to restart
 	}
