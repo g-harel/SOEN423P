@@ -31,8 +31,8 @@ public enum OperationCode {
     INVALID(-1),
 
     // For RM-SEQ
-    DUMP(1131),
-    ACK_DUMP(3131),
+    REPLAY(1131),
+    ACK_REPLAY(3131),
 
     // For FE-PI Communication
     CREATE_MANAGER_RECORD(1001),
@@ -74,7 +74,7 @@ public enum OperationCode {
     public OperationCode toAck(){
         if( m_Value < 3000 ){
             switch( this ){
-                case DUMP: return ACK_DUMP;
+                case REPLAY: return ACK_REPLAY;
 
                 case CREATE_MANAGER_RECORD: return ACK_CREATE_MANAGER_RECORD;
                 case CREATE_EMPLOYEE_RECORD: return ACK_CREATE_EMPLOYEE_RECORD;
