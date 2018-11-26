@@ -24,7 +24,7 @@
 package UDP;
 
 import Models.AddressBook;
-import Models.Location;
+import Models.RegisteredReplica;
 import java.util.concurrent.ThreadLocalRandom;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -98,7 +98,7 @@ public class SocketTest implements RequestListener.Processor {
         InetAddress addr = InetAddress.getLoopbackAddress();
 
         // using invalid port 'ensures' we wont get an answer
-        Message send = new Message(OperationCode.TRANSFER_RECORD, 0, Location.INVALID, "TESTING", addr, 46873);
+        Message send = new Message(OperationCode.TRANSFER_RECORD, 0, RegisteredReplica.INVALID, "TESTING", addr, 46873);
         Socket instance = new Socket();
 
         assertEquals(false, instance.send(send, 5, 500));
@@ -109,7 +109,7 @@ public class SocketTest implements RequestListener.Processor {
     @Test
     public void testSendWithLocation() throws Exception {
         Message send = new Message(OperationCode.GET_RECORD_COUNT, 456874, "LOCATION", TEST_ADDR);
-        send.setLocation(Location.CA);
+        send.setLocation(RegisteredReplica.ReplicaS1);
 
         assertEquals(true, m_Socket.send(send, 10, 1000));
 
@@ -119,26 +119,26 @@ public class SocketTest implements RequestListener.Processor {
         for (Message msg : m_ListOfMessages) {
             assertEquals(msg.getOpCode(), send.getOpCode());
             assertEquals(msg.getData(), "LOCATION");
-            assertEquals(msg.getLocation(), Location.CA);
+            assertEquals(msg.getLocation(), RegisteredReplica.ReplicaS1);
         }
 
         assertEquals(m_Socket.getResponse().getSeqNum(), 456874);
         assertEquals(m_Socket.getResponse().getData(), "RETVAL");
         assertEquals(m_Socket.getResponse().getOpCode(), OperationCode.ACK_GET_RECORD_COUNT);
-        assertEquals(m_Socket.getResponse().getLocation(), Location.CA);
+        assertEquals(m_Socket.getResponse().getLocation(), RegisteredReplica.ReplicaS1);
     }
 
     @Test
     public void testSendToLocation() throws Exception {
         Message send = new Message(OperationCode.DOES_RECORD_EXIST, 98465, "EVERYWHERE", TEST_ADDR);
 
-        assertEquals(true, m_Socket.sendTo(Location.values(), send, 10, 1000));
+        assertEquals(true, m_Socket.sendTo(RegisteredReplica.values(), send, 10, 1000));
 
         // Make sure capture message was what we sent!
         for (Message msg : m_ListOfMessages) {
             assertEquals(msg.getOpCode(), send.getOpCode());
             assertEquals(msg.getData(), "EVERYWHERE");
-            assertNotEquals(msg.getLocation(), Location.INVALID);
+            assertNotEquals(msg.getLocation(), RegisteredReplica.INVALID);
         }
 
         assertEquals(m_Socket.getResponse().getSeqNum(), 98465);

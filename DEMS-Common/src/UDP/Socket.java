@@ -24,6 +24,7 @@
 package UDP;
 
 import Models.Location;
+import Models.RegisteredReplica;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -104,11 +105,11 @@ public class Socket {
     @return true is send was answered with ack otherwise false
     @throws error when failing to send ( should not occure )
      */
-    public boolean sendTo(Location[] locations, Message msg, int retryCounter, int timeout) throws Exception {
+    public boolean sendTo(RegisteredReplica[] locations, Message msg, int retryCounter, int timeout) throws Exception {
         boolean retval = true;
 
-        for (Location loc : locations) {
-            if (loc == Location.INVALID) {
+        for (RegisteredReplica loc : locations) {
+            if (loc == RegisteredReplica.INVALID) {
                 continue;
             }
 

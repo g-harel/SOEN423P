@@ -24,7 +24,7 @@
 package UDP;
 
 import Models.AddressBook;
-import Models.Location;
+import Models.RegisteredReplica;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 
@@ -43,7 +43,7 @@ public class Message {
      */
     private OperationCode m_Code;
     private int m_SeqNum;
-    private Location m_Location;
+    private RegisteredReplica m_Location;
     private String m_Data;
     private InetAddress m_Addr;
     private int m_Port;
@@ -51,18 +51,18 @@ public class Message {
     // @warning max data.length is 2048 bytes !
     // Main entry point for initiating communication, See Socket for an example
     public Message(OperationCode code, int seq, String data, AddressBook addrInfo) throws Exception {
-        if(data.length() >= 2048){
+        if (data.length() >= 2048) {
             throw new Exception("data payload is too large!");
         }
-        
+
         this.m_Code = code;
         this.m_SeqNum = seq;
-        this.m_Location = Location.INVALID;
+        this.m_Location = RegisteredReplica.INVALID;
         this.m_Data = data;
         this.m_Addr = addrInfo.getAddr();
         this.m_Port = addrInfo.getPort();
     }
-    
+
     // This should not be called!
     // Used for decomposing correctly formatted requests
     protected Message(DatagramPacket packet) {
@@ -71,11 +71,11 @@ public class Message {
 
         this.m_Code = OperationCode.fromString(payload.substring(0, payload.indexOf("\r\n")));
         payload = payload.substring(payload.indexOf("\r\n") + 2);
-        
+
         this.m_SeqNum = Integer.valueOf(payload.substring(0, payload.indexOf("\r\n")));
         payload = payload.substring(payload.indexOf("\r\n") + 2);
-        this.m_Location = Location.fromString(payload.substring(0, payload.indexOf("\r\n")));
-        
+        this.m_Location = RegisteredReplica.valueOf(payload.substring(0, payload.indexOf("\r\n")));
+
         this.m_Data = payload.substring(payload.indexOf("\r\n") + 2);
         this.m_Addr = packet.getAddress();
         this.m_Port = packet.getPort();
@@ -83,7 +83,7 @@ public class Message {
 
     // This should not be called!
     // This should only be used by RequestListener
-    protected Message(OperationCode code, int seq, Location loc, String data, InetAddress addr, int port) {
+    protected Message(OperationCode code, int seq, RegisteredReplica loc, String data, InetAddress addr, int port) {
         this.m_Code = code;
         this.m_SeqNum = seq;
         this.m_Location = loc;
@@ -93,8 +93,8 @@ public class Message {
     }
 
     public DatagramPacket getPacket() {
-        String payload = m_Code.toString() + "\r\n" + String.valueOf(m_SeqNum) + "\r\n" 
-                + m_Location.getPrefix() + "\r\n" + m_Data;
+        String payload = m_Code.toString() + "\r\n" + String.valueOf(m_SeqNum) + "\r\n"
+                + m_Location.toString() + "\r\n" + m_Data;
         return new DatagramPacket(payload.getBytes(), payload.length(), m_Addr, m_Port);
     }
 
@@ -116,24 +116,23 @@ public class Message {
 
     @Override
     public String toString() {
-        return "Message{" + "code=" + m_Code + ", seq=" + m_SeqNum + ", data=" + m_Data + ", addr=" + m_Addr + ", port=" + m_Port + '}';
+        return "Message{" + "code=" + m_Code + ", seq=" + m_SeqNum + ", loc=" + m_Location + ", data=" + m_Data
+                + ", addr=" + m_Addr + ", port=" + m_Port + '}';
     }
 
     public int getSeqNum() {
         return m_SeqNum;
     }
 
-    public void setSeqNum(int m_SeqNum) {
-        this.m_SeqNum = m_SeqNum;
+    public void setSeqNum(int seqNum) {
+        this.m_SeqNum = seqNum;
     }
 
-    public Location getLocation() {
+    public RegisteredReplica getLocation() {
         return m_Location;
     }
 
-    public void setLocation(Location m_Location) {
-        this.m_Location = m_Location;
+    public void setLocation(RegisteredReplica location) {
+        this.m_Location = location;
     }
-    
-    
 }
