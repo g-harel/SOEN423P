@@ -31,6 +31,7 @@ import UDP.RequestListener;
 import UDP.RequestListener.Processor;
 import UDP.Socket;
 import Utility.ClientRequest;
+import Utility.FailureMessage;
 import Utility.ReplicaResponse;
 import Interface.Corba.IFrontEnd;
 import Interface.Corba.IFrontEndHelper;
@@ -43,7 +44,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
-import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,21 +64,21 @@ public class FrontEnd extends IFrontEndPOA {
 	private ConsensusTracker consensusTracker = new ConsensusTracker(3);
 	
 
-    private class ReplicaResponseProcessor implements Processor {
+    private class FrontEndListerner implements Processor {
     	final private RequestListener m_Listener;
     	private Thread m_ListenerThread;
     	
-    	public ReplicaResponseProcessor() {
+    	public FrontEndListerner() {
     		m_Listener = new RequestListener(this, AddressBook.FRONTEND);
     	}
     	
-		public void Launch(){
+		public void launch(){
 			m_ListenerThread = new Thread(m_Listener);
 			m_ListenerThread.start();
-			m_Listener.Wait(); // Make sure it's running before getting any farther ( optional )
+//			m_Listener.Wait(); // Make sure it's running before getting any farther ( optional )
 		}
 		
-		public void Shutdown() {
+		public void shutdown() {
 			m_Listener.Stop();
 			
 			try {
@@ -87,6 +87,11 @@ public class FrontEnd extends IFrontEndPOA {
 				e.printStackTrace();
 			}
 		}
+		
+		/**
+	 	 *  Operation Handled:
+	 	 *  OPERATION_RETVAL(1005)
+	 	 */
 		@Override
 		public String handleRequestMessage(Message msg) throws Exception {
 			if (msg.getOpCode() == OperationCode.OPERATION_RETVAL && msg.getData().contains("ReplicaResponse")) {
@@ -119,7 +124,8 @@ public class FrontEnd extends IFrontEndPOA {
 
                 		if(softwareFailures.size() > 0) {
                 			for(ReplicaInfo replica: softwareFailures) {
-                				sendMulticastToRMs(replica.getReplicaAddress(), replica.getReplicaPort());
+                				FailureMessage failureMessage = new FailureMessage(replica.getReplicaAddress(), replica.getReplicaPort());
+                				sendMulticastToRMs(OperationCode.FAULY_RESP_NOTIFICATION, msg.getSeqNum(), failureMessage);
                 			}
                     	}
 
@@ -266,9 +272,7 @@ public class FrontEnd extends IFrontEndPOA {
 	}
 
 	private void sendRequestToSequencer(ClientRequest clientRequest) {
-		System.out.println(clientRequest);
-
-    	ByteArrayOutputStream bStream = new ByteArrayOutputStream();
+		ByteArrayOutputStream bStream = new ByteArrayOutputStream();
         ObjectOutput oo;
 
 		try {
@@ -281,20 +285,44 @@ public class FrontEnd extends IFrontEndPOA {
 
         byte[] serializedClientRequest = bStream.toByteArray();
         
+        Message messageToSend = null;
         
-		sendUDPRequest(serializedClientRequest);
+		try {
+			messageToSend = new Message(OperationCode.SERIALIZE, 0, serializedClientRequest.toString(), AddressBook.SEQUENCER);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		sendUDPRequest(messageToSend);
 	}
 
-	private void sendMulticastToRMs(InetAddress replicaIP, int replicaPort) {
+	private void sendMulticastToRMs(OperationCode opCode, int sequenceID, FailureMessage failureMessage) {
+		ByteArrayOutputStream bStream = new ByteArrayOutputStream();
+        ObjectOutput oo;
 
+		try {
+			oo = new ObjectOutputStream(bStream);
+			oo.writeObject(failureMessage);
+	        oo.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+        byte[] serializedClientRequest = bStream.toByteArray();
+        Message messageToSend = null;
+        
+		try {
+			messageToSend = new Message(opCode, sequenceID, serializedClientRequest.toString(), AddressBook.MANAGER);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+        
+		sendUDPRequest(messageToSend);
 	}
 
-    private void sendUDPRequest(byte[] serializedClientRequest) {    	
-    	Message messageToSend = new Message(OperationCode.SERIALIZE, 0, serializedClientRequest.toString(), AddressBook.SEQUENCER);
-
+    private void sendUDPRequest(Message messageToSend) {    	
     	try {
     		Socket socket = new Socket();
-			socket.send(messageToSend, 5, 2000);
+			socket.send(messageToSend, 5, 1000);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -302,9 +330,8 @@ public class FrontEnd extends IFrontEndPOA {
 
     // Starts the UDP RequestListener to receive the responses from the Replicas
     public void startUDPListener() {
-    	Processor requestProcessor = new ReplicaResponseProcessor();
-    	RequestListener requestListener = new RequestListener(requestProcessor, AddressBook.FRONTEND);
-    	requestListener.run();
+    	FrontEndListerner frontEndListerner = new FrontEndListerner();
+    	frontEndListerner.launch();
 
     	System.out.println("Front-End started to listen for UDP requests on port: " + AddressBook.FRONTEND.getPort());
     }
