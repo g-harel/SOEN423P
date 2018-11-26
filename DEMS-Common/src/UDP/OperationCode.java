@@ -74,7 +74,6 @@ public enum OperationCode {
     public OperationCode toAck(){
         if( m_Value < 3000 ){
             switch( this ){
-                case SERIALIZE: return ACK_SERIALIZE;
                 case DUMP: return ACK_DUMP;
 
 
