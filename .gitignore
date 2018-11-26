@@ -46,4 +46,4 @@ hs_err_pid*
 /Sequencer/nbproject/private/
 /Sequencer/build/
 /Sequencer/dist/
-DEMS-Common/src/Models/Location\.java
+/bin/
