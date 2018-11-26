@@ -72,11 +72,11 @@ public class SequencerTest implements RequestListener.Processor {
 
     @Test
     public void testSequencer() throws Exception {
-        Socket instance = new Socket();
+        Socket frontendMock = new Socket();
         Message forward = new Message(OperationCode.TRANSFER_RECORD, 0, "TESTING ABC", AddressBook.SEQUENCER);
-        instance.send(forward, 5, 500);
+        frontendMock.send(forward, 5, 500);
 
-        Message response = instance.getResponse();
+        Message response = frontendMock.getResponse();
 
         assertEquals("response should be ACK_OPERATIOIN", OperationCode.ACK_TRANSFER_RECORD, response.getOpCode());
         assertEquals("response should be SeqNum=0", 0, response.getSeqNum()); // Unmodified by RUDP server
@@ -92,6 +92,13 @@ public class SequencerTest implements RequestListener.Processor {
             assertEquals(msg.getData(), "TESTING ABC");
             assertEquals(msg.getSeqNum(), seqNumber);
         }
+    }
+    
+    @Test
+    public void testPlayback() throws Exception {
+        Socket frontendMock = new Socket();
+        Message forward = new Message(OperationCode.TRANSFER_RECORD, 0, "TESTING ABC", AddressBook.SEQUENCER);
+        frontendMock.send(forward, 5, 500);
     }
 
     @Override
