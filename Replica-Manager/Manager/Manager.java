@@ -41,7 +41,7 @@ public class Manager {
 		}catch(StackOverflowError stackOver) {
 			// It means the stack is full we should restart the Replica
 			nonByzantineFailStack.empty();
-			return restartReplica(seqId);
+			return restoreReplicaBack(seqId);
 			
 		}catch(Exception ee) {
 			System.out.println("Error while registerNonByzFailure " + ee.getMessage());
@@ -55,14 +55,14 @@ public class Manager {
 	public synchronized String registerCrashFailure(int seqId) {
 		try {
 			//TODO: Add logging here
-			return restoreReplicaBack(seqId);
+			return restartReplica(seqId);
 		}catch(Exception ee) {
 			System.out.println("Error while registerCrashFailure " + ee.getMessage());
 			return ee.getMessage();
 		}
 	}
 	/**
-	 * Will Call the right replica to restore from a log file
+	 * Will Call the right replica to restore from a log file, will need to go through sequencer
 	 */
 	public String restoreReplicaBack(int seqId) {
 		//TODO: We need clarify which data to send and the format
@@ -72,7 +72,7 @@ public class Manager {
 					OperationCode.RESTORE_ORDER_NOTIFICATION,
 					seqId,
 					"targetReplica: " + this.getAssociatedReplicaName() + "order: restore from log" + ", log: blabla",
-					AddressBook.REPLICAS);
+					AddressBook.SEQUENCER);
 			
 			if(!instance.send(sendMessa, 10, 1000)) {
 				throw new Exception("Failed to send Restore Order to Replica");
