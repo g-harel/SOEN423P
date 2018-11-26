@@ -11,7 +11,6 @@ public class PortConfiguration {
 		private static final int DEFAULT_CA_PORT = 5555;
 		private static final  int DEFAULT_US_PORT = 7777;
 		private static final int DEFAULT_UK_PORT = 4444;
-		private static final  int DEFAULT_CORBA_PORT = 1050;
 		
 		
 		public static  int getDEFAULT_CA_PORT() {
@@ -22,9 +21,6 @@ public class PortConfiguration {
 		}
 		public static  int getDEFAULT_UK_PORT() {
 			return DEFAULT_UK_PORT;
-		}
-		public static int getDEFAULT_CORBA_PORT() {
-			return DEFAULT_CORBA_PORT;
 		}
 
 

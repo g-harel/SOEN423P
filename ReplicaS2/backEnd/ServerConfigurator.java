@@ -1,15 +1,7 @@
 package backEnd;
 
-import org.omg.CORBA.ORB;
-import org.omg.CosNaming.NameComponent;
-import org.omg.CosNaming.NamingContextExt;
-import org.omg.CosNaming.NamingContextExtHelper;
-import org.omg.PortableServer.POA;
-import org.omg.PortableServer.POAHelper;
 import Config.PortConfiguration;
 import Config.StorageConfig;
-import HrCenterApp.DEMS;
-import HrCenterApp.DEMSHelper;
 import model.Location;
 import shared.HRActions;
 import shared.UDP.RecordCounterUDP;
@@ -23,15 +15,12 @@ public class ServerConfigurator {
 
 	
 	private IStore configStoring;
-	private ORB orb;
 	public ServerConfigurator() {
 		 configStoring	= 
 				new Logger("ServerConfigurator", StorageConfig.CENTRAL_REPO_LOCATION);
 	}
 	
 	 void configureCenter(String[] args) {
-		
-		orb = ORB.init(args, null);
 
 		for(Location loc: Location.values()) {
 			//TODO: Refactor this switch
@@ -55,15 +44,14 @@ public class ServerConfigurator {
 	
 		}
 		
-		String startingMessage = "The CORBA Server: " +
-				" is on port:  " + PortConfiguration.getDEFAULT_CORBA_PORT();
+		String startingMessage = "The ReplicaS3 Server: " +
+				" is launch";
 
 		System.out.println(startingMessage);
 
 		configStoring.writeLog(startingMessage, "CentralRepo.txt");
-		orb.run();
-		System.out.println("CORBA Server is going down..." );
 		
+	
 
 	}
 	
@@ -102,21 +90,7 @@ public class ServerConfigurator {
 			PortConfiguration.addConfigUDP(loca, udpPortCounter);
 			PortConfiguration.addConfigUDPTransfert(loca, udpPortTransfert);
 			
-			//Creating a CORBA object
-			POA rootPoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
-			rootPoa.the_POAManager().activate();
-			
-			instanceHRAction.setORB(orb);
-			org.omg.CORBA.Object ref = rootPoa.servant_to_reference(instanceHRAction);
-			DEMS href = DEMSHelper.narrow(ref);
-			
-			// Name the service same as location
-			org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");
-			
-			NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
-			String name = loca.toString();
-			NameComponent path[] = ncRef.to_name(name);
-			ncRef.rebind(path, href);
+
 			
 			System.out.println("CORBA Setup finished for Server " + loca.toString());		
 			
