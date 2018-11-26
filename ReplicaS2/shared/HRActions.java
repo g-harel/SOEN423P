@@ -26,7 +26,7 @@ import model.Project;
 import model.Record;
 import storage.IStore;
 
-public class HRActions  extends DEMSPOA implements IHRActions  {
+public class HRActions implements IHRActions  {
 
 	private String DEFAULT_LOG_FILE = "Log.txt";
 	private  Map<Integer, ArrayList<Record>> db;
@@ -49,10 +49,6 @@ public class HRActions  extends DEMSPOA implements IHRActions  {
 		currentManagerID = new ArrayList<String>();
 		buildfakeDatabase();
 		restoreFromStorage();
-	}
-	
-	public void setORB(ORB orb) {
-		this.orb = orb;
 	}
 	public IStore getStore() {
 		return store;
@@ -114,8 +110,8 @@ public class HRActions  extends DEMSPOA implements IHRActions  {
 
 	@Override
 	public synchronized String createMRecord (String firstName, String lastName, String employeeID, 
-			String mailID, HrCenterApp.DEMSPackage.Project[] projects, 
-			HrCenterApp.DEMSPackage.Location location, String managerAuthorOfRequest){
+			String mailID, Project[] projects, 
+			Location location, String managerAuthorOfRequest){
 		
 		store.writeLog("Attempt to write a new Manager: " + managerAuthorOfRequest , DEFAULT_LOG_FILE);
 		Manager newManager = null;
@@ -139,6 +135,7 @@ public class HRActions  extends DEMSPOA implements IHRActions  {
 			}
 			
 			List<String> projectIn = ConvertToInternalProjectObj(projects);
+			
 			List<Project> projectToPassIn = new ArrayList<Project>();
 			//Validate Project ID: Must already exists
 			for(Project proj: dbProject) {
@@ -148,12 +145,7 @@ public class HRActions  extends DEMSPOA implements IHRActions  {
 			}
 			
 			// Make sure location is real
-			Location locationE = null;
-			for(Location loc: Location.values()) {
-				if(loc.toString().equals(location.locationName)) {
-					locationE = loc;
-				}
-			}
+			Location locationE = location;
 			
 			newManager = new Manager(
 					firstName, 
@@ -209,13 +201,10 @@ public class HRActions  extends DEMSPOA implements IHRActions  {
 
 	}
 
-	private List<String> ConvertToInternalProjectObj(HrCenterApp.DEMSPackage.Project[] projects) {
+	private List<String> ConvertToInternalProjectObj(Project[] projects) {
 		List<String> createdProject = new ArrayList<String>();
-		for(HrCenterApp.DEMSPackage.Project proj: projects) {
-			boolean projCreated = createProject(proj.projectID, proj.clientName, proj.projectName);
-			if(projCreated) {
-				createdProject.add(proj.projectID);
-			}
+		for(Project proj: projects) {
+			createdProject.add(proj.getProjectID());
 		}
 		return createdProject;
 	}
@@ -538,8 +527,9 @@ public class HRActions  extends DEMSPOA implements IHRActions  {
 		
 			if(fieldName.equals("location")) {
 				
-				HrCenterApp.DEMSPackage.Location formatedLocation = 
-						new HrCenterApp.DEMSPackage.Location(value);
+				Location formatedLocation = convertStringToLocation(value);
+				if(formatedLocation == null)return "Invalid Location";
+				
 				tmpMan.setManagerID(generateUniqueManagerId(value));
 				//TODO: Using UDP/IP create a new Manager on the other Server 
 				String status = this.transferRecord(managerId, mrecord.getRecordID(), formatedLocation);
@@ -716,12 +706,12 @@ public class HRActions  extends DEMSPOA implements IHRActions  {
 					Manager man = (Manager) recordConvertedBack;
 					// Giving that manager a simple project
 
-					HrCenterApp.DEMSPackage.Project proj = new 
-							HrCenterApp.DEMSPackage.Project(sampleProject.getProjectID(), 
+					Project proj = new 
+							Project(sampleProject.getProjectID(), 
 									sampleProject.getClientName(), sampleProject.getProjectName());
-					HrCenterApp.DEMSPackage.Project[] newListProject = {proj};
-					HrCenterApp.DEMSPackage.Location currentLocation = 
-							new HrCenterApp.DEMSPackage.Location(store.getStorageName());
+					Project[] newListProject = {proj};
+					Location currentLocation = 
+							convertStringToLocation(store.getStorageName());
 					
 					String creationStatus =  this.createMRecord(
 							man.getFirstName(), 
@@ -780,9 +770,9 @@ public class HRActions  extends DEMSPOA implements IHRActions  {
 
 	@Override
 	public synchronized String transferRecord(String managerID, String recordID,
-			HrCenterApp.DEMSPackage.Location location) {
+			Location location) {
 
-		Location targetLocation = null;
+		Location targetLocation = location;
 		Record originalRecord = null;
 		Record recordFound = null;
 		recordFound = FindRecordWithId(recordID);
@@ -794,13 +784,6 @@ public class HRActions  extends DEMSPOA implements IHRActions  {
 		 + " by: " + managerID, DEFAULT_LOG_FILE);
 		
 		
-		
-		
-		for(Location loc: Location.values()) {
-			if(location.locationName.equalsIgnoreCase(loc.toString())) {
-				targetLocation = loc;
-			}
-		}
 		
 		if(targetLocation == null) {
 			return "Could not find the location";
@@ -889,17 +872,6 @@ public class HRActions  extends DEMSPOA implements IHRActions  {
 		orb.shutdown(false);
 	}
 
-	@Override
-	public synchronized boolean managerLogin(String managerID) {
-		List<Manager> allManagers = new ArrayList<Manager>();
-		allManagers = this.getAllManagers();
-		for(Manager manager: allManagers) {
-			if(manager.getManagerID().equalsIgnoreCase(managerID)) {
-				return true;
-			}
-		}
-		return false;
-	}
 
 	private List<Manager> getAllManagers() {
 		List<Manager> allManagers = new ArrayList<Manager>();
@@ -924,38 +896,24 @@ public class HRActions  extends DEMSPOA implements IHRActions  {
 		}
 		return allEmployees;
 	}
-
-	@Override
-	public synchronized String getWelcomeMessage(String managerID) {
-		StringBuilder welcomeStatus = new StringBuilder();
-		welcomeStatus.append("Welcome " + managerID + " to : " + this.store.getStorageName() + " center");
-		welcomeStatus.append(" currently have " + this.getNumberOfRecordsHelper() + " records");
-		return welcomeStatus.toString();
-	}
-
-	@Override
-	public String printAllRecords() {
-		StringBuilder allRecords = new StringBuilder();
-		for(List<Record> list: db.values()) {
-			for(Record r: list) {
-				allRecords.append(r.toString());
-				allRecords.append("\n");
-			}
+	
+	private Location convertStringToLocation(String location) {
+		String loc = location.toLowerCase();
+		switch(loc) {
+			case "ca":
+				return Location.CA;
+		
+			case "us":
+				return Location.US;
+				
+			case "uk":
+				return Location.UK;
+			default:
+				return null;
 		}
-		return allRecords.toString();
+
+
 	}
-
-	@Override
-	public String printAllProjects() {
-		StringBuilder allProjects = new StringBuilder();
-		for(Project p: dbProject) {
-			allProjects.append(p.toString());
-			allProjects.append("\n");
-		}
-		return allProjects.toString();
-	}
-
-
 	
 	
 

@@ -1,8 +1,10 @@
 package shared;
-import HrCenterApp.DEMSOperations;
+
+import model.Location;
+import model.Project;
 import storage.IStore;
 
-public interface IHRActions extends DEMSOperations {
+public interface IHRActions {
 	
 	IStore store = null;
 	
@@ -23,8 +25,8 @@ public interface IHRActions extends DEMSOperations {
 	 *	was successful or not and both the server
 	 */
 	 public String createMRecord (String firstName, String lastName, String employeeID, 
-			 String mailID, HrCenterApp.DEMSPackage.Project[] projects, 
-			 HrCenterApp.DEMSPackage.Location location, String authorOfRequest);
+			 String mailID, Project[] projects, 
+			 Location location, String authorOfRequest);
 		/**
 		 * When a manager invokes this method from a ManagerClient, the server associated with
 		 *	this manager
@@ -65,7 +67,7 @@ public interface IHRActions extends DEMSOperations {
 	  *	entire record is transferred to the remoteCenterServer.
 	  */
 	 public String transferRecord (String managerID, String recordID, 
-			 HrCenterApp.DEMSPackage.Location location);
+			 Location location);
 	 /**
 	  * Shut down the entire system...
 	  */

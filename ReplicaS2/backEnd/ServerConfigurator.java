@@ -28,7 +28,7 @@ public class ServerConfigurator {
 			case CA:
 				buildCenter(loc, PortConfiguration.getDEFAULT_CA_PORT(), args);
 				// Save configuration in an object, in a real server we will save this to a .env file or other
-				PortConfiguration.addConfig(loc, PortConfiguration.getDEFAULT_CORBA_PORT());
+				PortConfiguration.addConfig(loc, PortConfiguration.getDEFAULT_CA_PORT());
 				break;
 			case US:
 				buildCenter(loc, PortConfiguration.getDEFAULT_US_PORT(), args);
