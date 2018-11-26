@@ -35,8 +35,10 @@ public enum OperationCode {
     ACK_SERIALIZE(3011),
     
     // For FE-PI Communication
-    UPDATE_RECORD_INDEX(1001),
-    ACK_UPDATE_RECORD_INDEX(3001),
+    CREATE_MANAGER_RECORD(1001),
+    ACK_CREATE_MANAGER_RECORD(3001),
+    CREATE_EMPLOYEE_RECORD(1005),
+    ACK_CREATE_EMPLOYEE_RECORD(3005),
     GET_RECORD_COUNT(1002),
     ACK_GET_RECORD_COUNT(3002),
     DOES_RECORD_EXIST(1003),
@@ -45,8 +47,8 @@ public enum OperationCode {
     ACK_TRANSFER_RECORD(3004),
     
     // For PI-FE
-    OPERATION_RETVAL(1005),
-    ACK_OPERATION_RETVAL(3005),
+    OPERATION_RETVAL(1025),
+    ACK_OPERATION_RETVAL(3025),
 
     // For FE-RM
     NO_RESP_NOTIFICATION(1201),
@@ -68,7 +70,8 @@ public enum OperationCode {
             switch( this ){
                 case SERIALIZE: return ACK_SERIALIZE;
                 
-                case UPDATE_RECORD_INDEX: return ACK_UPDATE_RECORD_INDEX;
+                case CREATE_MANAGER_RECORD: return ACK_CREATE_MANAGER_RECORD;
+                case CREATE_EMPLOYEE_RECORD: return ACK_CREATE_EMPLOYEE_RECORD;
                 case GET_RECORD_COUNT: return ACK_GET_RECORD_COUNT;
                 case DOES_RECORD_EXIST: return ACK_DOES_RECORD_EXIST;
                 case TRANSFER_RECORD: return ACK_TRANSFER_RECORD;
