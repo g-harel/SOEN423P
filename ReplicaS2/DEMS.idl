@@ -1,0 +1,44 @@
+module HrCenterApp{
+  interface DEMS {
+
+    struct Project {
+     wstring projectID;
+     wstring clientName;
+     wstring projectName;
+     };
+
+     struct Location {
+
+     wstring locationName;
+
+     };
+    typedef sequence<Project> managerProjects;
+
+    wstring createMRecord(in wstring firstName, in wstring lastName,
+    in wstring employeeID, in wstring mailID,
+    in managerProjects projects, in Location location,
+    in wstring managerAuthorOfRequest);
+
+    wstring createERecord(in wstring firstName, in wstring lastName,
+    in wstring employeeID, in wstring mailID, in wstring projectID,
+    in wstring managerID);
+
+    wstring getRecordCounts(in wstring managerID);
+
+    wstring editRecord(in wstring recordID, in wstring fieldName,
+    in wstring newValue, in wstring managerID);
+
+    wstring transferRecord(in wstring managerID, in wstring recordID,
+    in Location location);
+
+    wstring printAllRecords();
+
+    wstring printAllProjects();
+    
+    oneway void shutdown(in wstring managerID);
+
+    boolean managerLogin(in wstring managerID);
+
+    wstring getWelcomeMessage(in wstring managerID);
+ };
+};
