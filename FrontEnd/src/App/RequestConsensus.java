@@ -1,10 +1,11 @@
 package App;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import Models.RegisteredReplica;
 
 public class RequestConsensus {
 	private class ConsensusEntry {
@@ -18,21 +19,19 @@ public class RequestConsensus {
 	}
 	
 	
-	private HashMap<String, List<ReplicaInfo>> answersMap = new HashMap<>();
+	private HashMap<String, List<RegisteredReplica>> answersMap = new HashMap<>();
 	private int consensusCountNeeded;
 	private String consensusAnswer;
 	
-	public RequestConsensus(String answer, InetAddress replicaAddress, int replicaPort) {
+	public RequestConsensus(String answer, RegisteredReplica replicaID) {
 		this.answersMap.put(answer, new ArrayList<>());
 		
-		addAnswer(answer, replicaAddress, replicaPort);
+		addAnswer(answer, replicaID);
 	}
 	
-	public void addAnswer(String answer, InetAddress replicaAddress, int replicaPort) {
-		ReplicaInfo replicaInfo  = new ReplicaInfo(replicaAddress, replicaPort);
-		
-		if(!answersMap.get(answer).contains(replicaInfo)) {			
-			answersMap.get(answer).add(replicaInfo);
+	public void addAnswer(String answer, RegisteredReplica replicaID) {
+		if(!answersMap.get(answer).contains(replicaID)) {			
+			answersMap.get(answer).add(replicaID);
 		}
 	}
 	
@@ -43,7 +42,7 @@ public class RequestConsensus {
 		
 		ConsensusEntry maximumAnswer = null;
 		
-		for (Map.Entry<String, List<ReplicaInfo>> entry : answersMap.entrySet()) {
+		for (Map.Entry<String, List<RegisteredReplica>> entry : answersMap.entrySet()) {
 			if(consensusAnswer == null || maximumAnswer.count < entry.getValue().size()) {
 				maximumAnswer = new ConsensusEntry(entry.getKey(), entry.getValue().size());
 			}
@@ -56,14 +55,14 @@ public class RequestConsensus {
 		return consensusAnswer != null;
 	}
 	
-	public List<ReplicaInfo> getSoftwareFailures() {
+	public List<RegisteredReplica> getSoftwareFailures() {
 		if(consensusAnswer == null) {
 			return null;
 		}
 		
-		List<ReplicaInfo> softwareFailures = new ArrayList<>();
+		List<RegisteredReplica> softwareFailures = new ArrayList<>();
 		
-		for (Map.Entry<String, List<ReplicaInfo>> entry : answersMap.entrySet()) {
+		for (Map.Entry<String, List<RegisteredReplica>> entry : answersMap.entrySet()) {
 			if(entry.getKey() != consensusAnswer) {
 				softwareFailures.addAll(entry.getValue());
 			}

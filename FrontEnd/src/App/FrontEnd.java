@@ -25,13 +25,13 @@ package App;
 
 import Models.AddressBook;
 import Models.Location;
+import Models.RegisteredReplica;
 import UDP.Message;
 import UDP.OperationCode;
 import UDP.RequestListener;
 import UDP.RequestListener.Processor;
 import UDP.Socket;
 import Utility.ClientRequest;
-import Utility.FailureMessage;
 import Utility.ReplicaResponse;
 import Interface.Corba.IFrontEnd;
 import Interface.Corba.IFrontEndHelper;
@@ -109,23 +109,23 @@ public class FrontEnd extends IFrontEndPOA {
                 
                 int sequenceID = msg.getSeqNum();
                 String answer = replicaResponse.getResponse();
+                RegisteredReplica replicaID = replicaResponse.getReplicaID();
 
                 RequestConsensus requestConsensus = consensusTracker.getRequestConsensus(sequenceID);
 
                 if(requestConsensus == null) {
-                	requestConsensus = new RequestConsensus(answer, msg.getAddress(), msg.getPort());
+                	requestConsensus = new RequestConsensus(answer, replicaID);
                 	consensusTracker.addRequestConsensus(sequenceID, requestConsensus);
                 }
                 else {
-                	requestConsensus.addAnswer(answer, msg.getAddress(), msg.getPort());
+                	requestConsensus.addAnswer(answer, replicaID);
 
                 	if(requestConsensus.shouldSendConsensus()) {
-                		List<ReplicaInfo> softwareFailures = requestConsensus.getSoftwareFailures();
+                		List<RegisteredReplica> softwareFailures = requestConsensus.getSoftwareFailures();
 
                 		if(softwareFailures.size() > 0) {
-                			for(ReplicaInfo replica: softwareFailures) {
-                				FailureMessage failureMessage = new FailureMessage(replica.getReplicaAddress(), replica.getReplicaPort());
-                				sendMulticastToRMs(OperationCode.FAULY_RESP_NOTIFICATION, msg.getSeqNum(), failureMessage);
+                			for(RegisteredReplica replica: softwareFailures) {
+                				sendMulticastToRMs(OperationCode.FAULY_RESP_NOTIFICATION, msg.getSeqNum(), replica);
                 			}
                     	}
 
@@ -295,23 +295,11 @@ public class FrontEnd extends IFrontEndPOA {
 		sendUDPRequest(messageToSend);
 	}
 
-	private void sendMulticastToRMs(OperationCode opCode, int sequenceID, FailureMessage failureMessage) {
-		ByteArrayOutputStream bStream = new ByteArrayOutputStream();
-        ObjectOutput oo;
-
-		try {
-			oo = new ObjectOutputStream(bStream);
-			oo.writeObject(failureMessage);
-	        oo.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-        byte[] serializedClientRequest = bStream.toByteArray();
+	private void sendMulticastToRMs(OperationCode opCode, int sequenceID, RegisteredReplica replicaID) {		
         Message messageToSend = null;
         
 		try {
-			messageToSend = new Message(opCode, sequenceID, serializedClientRequest.toString(), AddressBook.MANAGER);
+			messageToSend = new Message(opCode, sequenceID, replicaID.toString(), AddressBook.MANAGER);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
