@@ -1,4 +1,4 @@
-/* 
+/*
     MIT License
 
     Copyright (c) 2018
@@ -28,6 +28,8 @@ import UDP.Message;
 import UDP.OperationCode;
 import UDP.RequestListener;
 import UDP.Socket;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import org.junit.After;
@@ -62,6 +64,7 @@ public class SequencerTest implements RequestListener.Processor {
 
     @Before
     public void setUp() {
+    	m_ListOfMessages = new ArrayList<Message>();
         m_Listener = new RequestListener(this, TEST_ADDR);
         m_ListenerThread = new Thread(m_Listener);
         m_ListenerThread.start();
@@ -78,7 +81,7 @@ public class SequencerTest implements RequestListener.Processor {
     public void testSequencer() throws Exception {
         Socket frontendMock = new Socket();
         Message forward = new Message(OperationCode.TRANSFER_RECORD, 0, "TESTING ABC", AddressBook.SEQUENCER);
-        
+
         assertTrue("Seq should ACK request", frontendMock.send(forward, 10, 1000));
 
         Message response = frontendMock.getResponse();
@@ -90,7 +93,7 @@ public class SequencerTest implements RequestListener.Processor {
         int seqNumber = Integer.valueOf(response.getData().substring("SEQ=".length()));
         assertNotEquals("SeqNum should be greater the Zero", 0, seqNumber);
 
-        assertEquals(m_ListOfMessages.size(), 1);
+        assertEquals(1, m_ListOfMessages.size());
 
         for (Message msg : m_ListOfMessages) {
             assertEquals(msg.getOpCode(), forward.getOpCode());
@@ -99,7 +102,7 @@ public class SequencerTest implements RequestListener.Processor {
         }
     }
 
-    // @Test
+    @Test
     public void testPlayback() throws Exception {
         Socket frontendMock = new Socket();
         Message[] forward = {
@@ -110,27 +113,28 @@ public class SequencerTest implements RequestListener.Processor {
             new Message(OperationCode.TRANSFER_RECORD, 0, "TESTING TR", AddressBook.SEQUENCER),};
 
         for (Message msg : forward) {
-            assertTrue("Seq should ACK request", frontendMock.send(msg, 5, 500) );
+            System.out.println(msg);
+            assertTrue("Seq should ACK request", frontendMock.send(msg, 5, 500));
         }
-        
+
         String response = frontendMock.getResponse().getData();
         assertTrue("response paylod should be SEQ=#", response.startsWith("SEQ="));
-        
+
         int seqNumber = Integer.valueOf(response.substring("SEQ=".length()));
         assertNotEquals("SeqNum should be greater the Zero", 0, seqNumber);
-        
+
         assertEquals(m_ListOfMessages.size(), forward.length);
-        
+
         m_ListOfMessages.clear();
         // TO DO: Evaluate what the ordering should be of the recieved messages =?
-        
+
         Socket managerMock = new Socket();
         Message seqResendCommand = new Message ( OperationCode.REPLAY, 0, "RETRANSMIT THE WHOLE WORLD !", AddressBook.SEQUENCER );
-        
+
         assertTrue("Seq should ACK request", managerMock.send(seqResendCommand, 5, 500));
-        
+
         Thread.sleep(1250); // Wait for retransmission to complete!
-        
+
         assertEquals(m_ListOfMessages.size(), forward.length);
     }
 

@@ -1,4 +1,4 @@
-/* 
+/*
     MIT License
 
     Copyright (c) 2018 Chris Mc, prince.chrismc(at)gmail(dot)com
@@ -138,12 +138,10 @@ public class RequestListener implements Runnable {
             Message response = processRequest(request);
 
             if (response == null) {
-                System.out.println("NULL CHECK");
                 continue; // Nothing to do!
             }
 
             try {
-                System.out.println("SEND CHECK");
                 m_Socket.send(response.getPacket());
             } catch (IOException ex) {
                 System.out.println("Failed to send message: " + ex.getMessage());
@@ -188,20 +186,15 @@ public class RequestListener implements Runnable {
         String responsePayload;
         OperationCode responseCode = request.getOpCode().toAck();
 
-        System.out.println(responseCode);
         try {
-                System.out.println("calling handler");
             responsePayload = m_Handler.handleRequestMessage(request);
         } catch (Exception ex) {
-            System.out.println(responseCode);
+        	responseCode = OperationCode.INVALID;
             responsePayload = ex.getMessage();
         }
-        System.out.println(responseCode);
 
         InetAddress address = request.getAddress();
         int port = request.getPort();
-        Message response = new Message(responseCode, request.getSeqNum(), request.getLocation(), responsePayload, address, port);
-        System.out.println(response);
-        return response;
+        return new Message(responseCode, request.getSeqNum(), request.getLocation(), responsePayload, address, port);
     }
 }
