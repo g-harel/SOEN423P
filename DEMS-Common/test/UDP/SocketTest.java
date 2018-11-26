@@ -53,7 +53,7 @@ public class SocketTest implements RequestListener.Processor {
         m_ListOfMessages = new LinkedList<>();
     }
 
-    @Before
+    @Before 
     public void setUp() {
         m_Listener = new RequestListener(this, TEST_ADDR);
         m_ListenerThread = new Thread(m_Listener);

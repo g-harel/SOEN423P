@@ -38,32 +38,20 @@ import java.net.MulticastSocket;
  *
  * public class Example implements RequestListener.Processor {
  *
- * final private RequestListener m_Listener;
- * private Thread m_ListenerThread;
- * 
- * public Example() {
- *     m_Listener = new RequestListener(this, TEST_ADDR);
- * }
- * 
- * public void Launch(){
- *     m_ListenerThread = new Thread(m_Listener);
- *     m_ListenerThread.start();
- *     m_Listener.Wait(); // Make sure it's running before getting any farther ( optional )
- * }
- * 
- * public void Shutdown() {
- *     m_Listener.Stop();
- *     m_ListenerThread.join();
- * }
- * 
- * @Override
- * public String handleRequestMessage(Message msg) throws Exception {
- *     // Do some magical work with msg ( aka save a copy or switch on operation code )
- *     if (msg == incorrect) {
- *         throw new Exception("Explination why its wrong here");
- *     }
- *     return "SUCCESS MESSSAGE - HELLO WORLD!";
- * }
+ * final private RequestListener m_Listener; private Thread m_ListenerThread;
+ *
+ * public Example() { m_Listener = new RequestListener(this, TEST_ADDR); }
+ *
+ * public void Launch(){ m_ListenerThread = new Thread(m_Listener);
+ * m_ListenerThread.start(); m_Listener.Wait(); // Make sure it's running before
+ * getting any farther ( optional ) }
+ *
+ * public void Shutdown() { m_Listener.Stop(); m_ListenerThread.join(); }
+ *
+ * @Override public String handleRequestMessage(Message msg) throws Exception {
+ * // Do some magical work with msg ( aka save a copy or switch on operation
+ * code ) if (msg == incorrect) { throw new Exception("Explination why its wrong
+ * here"); } return "SUCCESS MESSSAGE - HELLO WORLD!"; }
  *
  */
 public class RequestListener implements Runnable {
@@ -150,10 +138,12 @@ public class RequestListener implements Runnable {
             Message response = processRequest(request);
 
             if (response == null) {
+                System.out.println("NULL CHECK");
                 continue; // Nothing to do!
             }
 
             try {
+                System.out.println("SEND CHECK");
                 m_Socket.send(response.getPacket());
             } catch (IOException ex) {
                 System.out.println("Failed to send message: " + ex.getMessage());
@@ -196,18 +186,22 @@ public class RequestListener implements Runnable {
 
         System.out.println("Processing new request...");
         String responsePayload;
-        OperationCode responseCode = OperationCode.INVALID;
+        OperationCode responseCode = request.getOpCode().toAck();
 
+        System.out.println(responseCode);
         try {
+                System.out.println("calling handler");
             responsePayload = m_Handler.handleRequestMessage(request);
-            responseCode = request.getOpCode().toAck();
-
         } catch (Exception ex) {
+            System.out.println(responseCode);
             responsePayload = ex.getMessage();
         }
+        System.out.println(responseCode);
 
         InetAddress address = request.getAddress();
         int port = request.getPort();
-        return new Message(responseCode, request.getSeqNum(), request.getLocation(), responsePayload, address, port);
+        Message response = new Message(responseCode, request.getSeqNum(), request.getLocation(), responsePayload, address, port);
+        System.out.println(response);
+        return response;
     }
 }
