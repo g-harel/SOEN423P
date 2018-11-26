@@ -20,45 +20,89 @@
     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
-*/
+ */
 package App;
 
 import Models.AddressBook;
 import UDP.Message;
 import UDP.OperationCode;
+import UDP.RequestListener;
 import UDP.Socket;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import org.junit.After;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.BeforeClass;
 
 /**
  *
  * @author cmcarthur
  */
+public class SequencerTest implements RequestListener.Processor {
 
+    private RequestListener m_Listener;
+    private Thread m_ListenerThread;
+    private List<Message> m_ListOfMessages;
 
-public class SequencerTest {
-    
+    public static AddressBook TEST_ADDR = AddressBook.REPLICAS; // For mocking purpose
+
     public SequencerTest() {
     }
 
-    /**
-     * Test of main method, of class Sequencer.
-     */
-    @Test
-    public void testMain() throws Exception {
-        String[] args = null;
-        Sequencer.main(args);
-
-        Socket instance = new Socket();
-        
-        Message msg = new Message(OperationCode.TRANSFER_RECORD, 0, "TESTING", AddressBook.SEQUENCER);
-        instance.send(msg, 5, 500);
-        
-        Message response = instance.getResponse();
-        
-        // TO DO: how to determine expected Sequence number =?
-
-        fail("The test case is a prototype.");
+    @BeforeClass
+    static public void setup() {
+        Sequencer.main(null); // Run the whole sequencer application
     }
-    
+
+    @Before
+    public void setUp() {
+        m_Listener = new RequestListener(this, TEST_ADDR);
+        m_ListenerThread = new Thread(m_Listener);
+        m_ListenerThread.start();
+        m_Listener.Wait();
+    }
+
+    @After
+    public void tearDown() throws InterruptedException {
+        m_Listener.Stop();
+        m_ListenerThread.join();
+    }
+
+    @Test
+    public void testSequencer() throws Exception {
+        Socket instance = new Socket();
+        Message forward = new Message(OperationCode.TRANSFER_RECORD, 0, "TESTING ABC", AddressBook.SEQUENCER);
+        instance.send(forward, 5, 500);
+
+        Message response = instance.getResponse();
+
+        assertEquals("response should be ACK_OPERATIOIN", OperationCode.ACK_TRANSFER_RECORD, response.getOpCode());
+        assertEquals("response should be SeqNum=0", 0, response.getSeqNum()); // Unmodified by RUDP server
+        assertTrue("response paylod should be SEQ=#", response.getData().startsWith("SEQ="));
+
+        int seqNumber = Integer.valueOf(response.getData().substring("SEQ=".length()));
+        assertNotEquals("SeqNum should be greater the Zero", 0, seqNumber);
+
+        assertEquals(m_ListOfMessages.size(), 1);
+
+        for (Message msg : m_ListOfMessages) {
+            assertEquals(msg.getOpCode(), forward.getOpCode());
+            assertEquals(msg.getData(), "TESTING ABC");
+            assertEquals(msg.getSeqNum(), seqNumber);
+        }
+    }
+
+    @Override
+    public String handleRequestMessage(Message msg) throws Exception {
+        int randomNum = ThreadLocalRandom.current().nextInt(0, 3);
+        if (randomNum == 0) {
+            throw new Exception("Dummy Error");
+        }
+
+        this.m_ListOfMessages.add(msg);
+        return "RETVAL";
+    }
+
 }
