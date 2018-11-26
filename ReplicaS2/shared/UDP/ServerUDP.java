@@ -4,7 +4,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
-import Config.StorageConfig;
+import config.StorageConfig;
 import shared.IHRActions;
 import storage.IStore;
 import storage.Logger;

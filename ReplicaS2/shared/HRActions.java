@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 
 import org.omg.CORBA.ORB;
 
-import Config.PortConfiguration;
+import config.PortConfiguration;
 import model.Employee;
 import model.Location;
 import model.Manager;

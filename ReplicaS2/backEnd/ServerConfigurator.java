@@ -1,7 +1,7 @@
 package backEnd;
 
-import Config.PortConfiguration;
-import Config.StorageConfig;
+import config.PortConfiguration;
+import config.StorageConfig;
 import model.Location;
 import shared.HRActions;
 import shared.UDP.RecordCounterUDP;
