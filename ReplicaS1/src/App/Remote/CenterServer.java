@@ -8,6 +8,7 @@ Course: SOEN 423
 package App.Remote;
 
 import Models.*;
+import Utility.ICenterServer;
 import Utility.LogEntry;
 import Utility.OperationLogger;
 import Utility.ReplicaResponse;
@@ -23,7 +24,7 @@ import App.Models.ManagerRecord;
 import App.Models.Record;
 import Interface.Corba.Project;
 
-public class CenterServer implements Runnable {
+public class CenterServer implements ICenterServer, Runnable {
     private HashMap<Character, List<Record>> records = new HashMap<>();
     private HashMap<Location, Integer> centerServerPorts = new HashMap<>();
     private Location centerLocation;
@@ -39,13 +40,14 @@ public class CenterServer implements Runnable {
         clearLogs();
     }
     
-    
+    @Override
     public synchronized ReplicaResponse createMRecord(String managerID, String firstName, String lastName, int employeeID, String mailID, Project project, String location) {
         Record newManager = new ManagerRecord(firstName, lastName, employeeID, mailID, project, Location.fromString(location));
         
         return createRecord(managerID, newManager, "createMRecord");
     }
     
+    @Override
     public synchronized ReplicaResponse createERecord(String managerID, String firstName, String lastName, int employeeID, String mailID, String projectID) {
         Record newEmployee = new EmployeeRecord(firstName, lastName, employeeID, mailID, projectID);
     
@@ -102,6 +104,7 @@ public class CenterServer implements Runnable {
         return new ReplicaResponse(true, recordCount.toString());
     }
     
+    @Override
     public synchronized ReplicaResponse editRecord(String managerID, String recordID, String fieldName, String newValue) {
         boolean errorFound = false;
         String outputLog = "";
@@ -197,6 +200,7 @@ public class CenterServer implements Runnable {
         return desiredRecord;
     }
     
+    @Override
     public ReplicaResponse transferRecord(String managerID, String recordID, String remoteCenterServerName) {
         Record record = findRecord(recordID);
         boolean errorFound = false;
@@ -258,6 +262,17 @@ public class CenterServer implements Runnable {
         
         return new ReplicaResponse(!errorFound, outputLog);
     }
+    
+    @Override
+	public void softwareFailure(String managerID) {
+		// TODO Auto-generated method stub
+	}
+
+
+	@Override
+	public void replicaCrash(String managerID) {
+		// TODO Auto-generated method stub
+	}
     
     public synchronized void printData() {
         List<Record> recordList;
