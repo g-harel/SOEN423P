@@ -32,12 +32,9 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import org.junit.After;
 import org.junit.Test;
-<<<<<<< HEAD
 
 import App.Sequencer;
 
-=======
->>>>>>> moved file
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -48,13 +45,8 @@ import org.junit.BeforeClass;
  */
 public class SequencerTest implements RequestListener.Processor {
 
-<<<<<<< HEAD
-    private RequestListener m_Listener;
-    private Thread m_ListenerThread;
-=======
     static private RequestListener m_Listener;
     static private Thread m_ListenerThread;
->>>>>>> moved file
     private List<Message> m_ListOfMessages;
 
     public static AddressBook TEST_ADDR = AddressBook.REPLICAS; // For mocking purpose
@@ -87,11 +79,7 @@ public class SequencerTest implements RequestListener.Processor {
         Socket frontendMock = new Socket();
         Message forward = new Message(OperationCode.TRANSFER_RECORD, 0, "TESTING ABC", AddressBook.SEQUENCER);
         
-<<<<<<< HEAD
-        assertTrue("Seq should ACK request", frontendMock.send(forward, 1, 100));
-=======
         assertTrue("Seq should ACK request", frontendMock.send(forward, 10, 1000));
->>>>>>> moved file
 
         Message response = frontendMock.getResponse();
 
