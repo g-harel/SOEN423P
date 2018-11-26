@@ -21,6 +21,7 @@ import UDP.OperationCode;
 import UDP.RequestListener;
 import UDP.RequestListener.Processor;
 import Utility.ClientRequest;
+import Utility.ReplicaResponse;
 
 public class Replica {
 	
@@ -70,8 +71,9 @@ public class Replica {
 					messagesQueue.put(sequenceID, msg);
 				}
 				
-				Replica.this.processRequest(msg);
+				ReplicaResponse replicaResponse = Replica.this.processRequest(msg);
 				
+				return replicaResponse;
 				// Check if next request is in messagesQueue
 				if(messagesQueue.get(nextSequenceID) != null) {
 					handleRequestMessage(messagesQueue.get(nextSequenceID));
@@ -100,7 +102,7 @@ public class Replica {
 
     }
 	
-	private void processRequest(Message message) {
+	private ReplicaResponse processRequest(Message message) {
 		ClientRequest clientRequest = null;
 		CenterServer server = null;
 		
@@ -113,6 +115,8 @@ public class Replica {
 			e.printStackTrace();
 		}
 		
+		ReplicaResponse replicaResponse = null;
+		
 		switch (clientRequest.getMethod()) {
 		case "createMRecord":
 			String managerID = (String) clientRequest.getData().get("managerID");
@@ -124,7 +128,9 @@ public class Replica {
 			String location = (String) clientRequest.getData().get("location");
 			
 			server = centerServers.get(clientRequest.getLocation());
-			server.createMRecord(managerID, firstName, lastName, employeeID, mailID, project, location);
+			replicaResponse = server.createMRecord(managerID, firstName, lastName, employeeID, mailID, project, location);
+			
+			replicaResponse.setResponse("New manager created successfully");
 			break;
 		case "createERecord":
 			String managerID2 = (String) clientRequest.getData().get("managerID");
@@ -135,10 +141,15 @@ public class Replica {
 			String projectID = (String) clientRequest.getData().get("projectID");
 			
 			server = centerServers.get(clientRequest.getLocation());
-			server.createERecord(managerID2, firstName2, lastName2, employeeID2, mailID2, projectID);
+			replicaResponse = server.createERecord(managerID2, firstName2, lastName2, employeeID2, mailID2, projectID);
+			
+			replicaResponse.setResponse("New employee created successfully");
 			break;
 		case "getRecordCounts":
 			String managerID3 = (String) clientRequest.getData().get("managerID");
+			
+			server = centerServers.get(clientRequest.getLocation());
+			replicaResponse = server.getRecordCounts(managerID3);
 			break;
 		case "editRecord":
 			String managerID4 = (String) clientRequest.getData().get("managerID");
@@ -147,7 +158,7 @@ public class Replica {
 			String newValue = (String) clientRequest.getData().get("newValue");
 			
 			server = centerServers.get(clientRequest.getLocation());
-			server.editRecord(managerID4, recordID, fieldName, newValue);
+			replicaResponse = server.editRecord(managerID4, recordID, fieldName, newValue);
 			break;
 		case "transferRecord":
 			String managerID5 = (String) clientRequest.getData().get("managerID");
@@ -155,11 +166,22 @@ public class Replica {
 			String location2 = (String) clientRequest.getData().get("location");
 			
 			server = centerServers.get(clientRequest.getLocation());
-			server.transferRecord(managerID5, recordID2, location2);
+			replicaResponse = server.transferRecord(managerID5, recordID2, location2);
+			break;
+		case "softwareFailure":
+			// TODO: Do something to get a wrong answer only for 1 replica
+			break;
+		case "replicaCrash":
+			// TODO: Do something to "crash" the replica
 			break;
 		default:
+			System.out.println("The method name received is not known.");
 			break;
 		}
+		
+		replicaResponse.setSequenceID(message.getSeqNum());
+		
+		return replicaResponse;
 	}
 	
 	// Starts the UDP RequestListener to receive the responses from the Replicas

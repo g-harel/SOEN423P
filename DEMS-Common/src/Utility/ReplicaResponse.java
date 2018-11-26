@@ -22,15 +22,20 @@ public class ReplicaResponse implements Serializable {
 	private RegisteredReplica replicaID;
 	private boolean success;
 	private String response;
-	
-	
+
+
 	public ReplicaResponse(RegisteredReplica replicaID, boolean success) {
 		this.replicaID = replicaID;
 		this.success = success;
 	}
-	
+
 	public ReplicaResponse(RegisteredReplica replicaID, boolean success, String response) {
 		this.replicaID = replicaID;
+		this.success = success;
+		this.response = response;
+	}
+
+	public ReplicaResponse(boolean success, String response) {
 		this.success = success;
 		this.response = response;
 	}

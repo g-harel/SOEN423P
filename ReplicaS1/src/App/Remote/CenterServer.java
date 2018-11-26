@@ -10,6 +10,7 @@ package App.Remote;
 import Models.*;
 import Utility.LogEntry;
 import Utility.OperationLogger;
+import Utility.ReplicaResponse;
 
 import java.io.*;
 import java.net.DatagramPacket;
@@ -39,19 +40,19 @@ public class CenterServer implements Runnable {
     }
     
     
-    public synchronized String createMRecord(String managerID, String firstName, String lastName, int employeeID, String mailID, Project project, String location) {
+    public synchronized ReplicaResponse createMRecord(String managerID, String firstName, String lastName, int employeeID, String mailID, Project project, String location) {
         Record newManager = new ManagerRecord(firstName, lastName, employeeID, mailID, project, Location.fromString(location));
         
         return createRecord(managerID, newManager, "createMRecord");
     }
     
-    public synchronized String createERecord(String managerID, String firstName, String lastName, int employeeID, String mailID, String projectID) {
+    public synchronized ReplicaResponse createERecord(String managerID, String firstName, String lastName, int employeeID, String mailID, String projectID) {
         Record newEmployee = new EmployeeRecord(firstName, lastName, employeeID, mailID, projectID);
     
         return createRecord(managerID, newEmployee, "createERecord");
     }
     
-    private synchronized String createRecord(String managerID, Record newRecord, String operationPerformed) {
+    private synchronized ReplicaResponse createRecord(String managerID, Record newRecord, String operationPerformed) {
         String operation = operationPerformed;
         String outputLog;
         
@@ -62,10 +63,10 @@ public class CenterServer implements Runnable {
         LogEntry logEntry = new LogEntry(managerID, operation, true);
         outputLog = addLogEntry(logEntry.toString(), newRecord.toString());
         
-        return outputLog;
+        return new ReplicaResponse(true, "");
     }
     
-    public String getRecordCounts(String managerID) {
+    public ReplicaResponse getRecordCounts(String managerID) {
         Map<Location, Integer> recordCount = new HashMap<>();
         boolean didThrowException = false;
     
@@ -98,10 +99,10 @@ public class CenterServer implements Runnable {
             addLogEntry(logEntry.toString(), recordCount.toString());
         }
         
-        return recordCount.toString();
+        return new ReplicaResponse(true, recordCount.toString());
     }
     
-    public synchronized String editRecord(String managerID, String recordID, String fieldName, String newValue) {
+    public synchronized ReplicaResponse editRecord(String managerID, String recordID, String fieldName, String newValue) {
         boolean errorFound = false;
         String outputLog = "";
         Record record = findRecord(recordID);
@@ -177,7 +178,7 @@ public class CenterServer implements Runnable {
             printData();
         }
         
-        return outputLog;
+        return new ReplicaResponse(!errorFound, outputLog);
     }
     
     private Record findRecord(String recordID) {
@@ -196,8 +197,9 @@ public class CenterServer implements Runnable {
         return desiredRecord;
     }
     
-    public String transferRecord(String managerID, String recordID, String remoteCenterServerName) {
+    public ReplicaResponse transferRecord(String managerID, String recordID, String remoteCenterServerName) {
         Record record = findRecord(recordID);
+        boolean errorFound = false;
         String outputLog = "";
         
         if (record != null) {
@@ -232,6 +234,7 @@ public class CenterServer implements Runnable {
                     records.get(letter).remove(record);
                 }
                 else {
+                	errorFound = true;
                     String errorMsg = "The Record ID entered (" + recordID + ") was found on both CenterServers. The record will not be transferred.";
                     LogEntry logEntry = new LogEntry(managerID, "transferRecord", false);
                     outputLog = addLogEntry(logEntry.toString(),  "Error Message: " + errorMsg);
@@ -240,10 +243,12 @@ public class CenterServer implements Runnable {
                 }
             }
             catch (Exception e) {
+            	errorFound = true;
                 e.printStackTrace();
             }
         }
         else {
+        	errorFound = true;
             String errorMsg = "The Record ID entered (" + recordID + ") was not found in the '" + centerLocation + "' CenterServer.";
             LogEntry logEntry = new LogEntry(managerID, "transferRecord", false);
             outputLog = addLogEntry(logEntry.toString(),  "Error Message: " + errorMsg);
@@ -251,7 +256,7 @@ public class CenterServer implements Runnable {
             System.out.println(errorMsg);
         }
         
-        return outputLog;
+        return new ReplicaResponse(!errorFound, outputLog);
     }
     
     public synchronized void printData() {
@@ -374,7 +379,7 @@ public class CenterServer implements Runnable {
                     String managerID = (String) dataReceived.get("managerID");
                     Record record = (Record) dataReceived.get("record");
     
-                    response = createRecord(managerID, record, "transferRecord (IN)").getBytes();
+                    response = createRecord(managerID, record, "transferRecord (IN)").getResponse().getBytes();
                 }
                 else {
                     response = "Request not supported".getBytes();
