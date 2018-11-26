@@ -9,25 +9,38 @@ package Utility;
 
 import java.io.Serializable;
 
+import Models.RegisteredReplica;
+
 /**
  * Replicas will send:
- * 		sequenceID (same ID from the ClientRequest. Set by the Sequencer)
+ * 		replicaID (The RegisteredReplica ID)
  * 		success (true/false)
  * 		response (Optional): Message to be logged and shown to the user.
  *
  */
 public class ReplicaResponse implements Serializable {
+	private RegisteredReplica replicaID;
 	private boolean success;
 	private String response;
 	
 	
-	public ReplicaResponse(boolean success) {
+	public ReplicaResponse(RegisteredReplica replicaID, boolean success) {
+		this.replicaID = replicaID;
 		this.success = success;
 	}
 	
-	public ReplicaResponse(boolean success, String response) {
+	public ReplicaResponse(RegisteredReplica replicaID, boolean success, String response) {
+		this.replicaID = replicaID;
 		this.success = success;
 		this.response = response;
+	}
+
+	public RegisteredReplica getReplicaID() {
+		return replicaID;
+	}
+
+	public void setReplicaID(RegisteredReplica replicaID) {
+		this.replicaID = replicaID;
 	}
 
 	public boolean isSuccess() {
@@ -48,6 +61,6 @@ public class ReplicaResponse implements Serializable {
 
 	@Override
 	public String toString() {
-		return "ReplicaResponse [success=" + success + ", response=" + response + "]";
+		return "ReplicaResponse [replicaID=" + replicaID + ", success=" + success + ", response=" + response + "]";
 	}
 }
