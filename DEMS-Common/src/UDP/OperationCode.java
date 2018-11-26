@@ -76,7 +76,8 @@ public enum OperationCode {
             switch( this ){
                 case DUMP: return ACK_DUMP;
 
-
+                case CREATE_MANAGER_RECORD: return ACK_CREATE_MANAGER_RECORD;
+                case CREATE_EMPLOYEE_RECORD: return ACK_CREATE_EMPLOYEE_RECORD;
                 case GET_RECORD_COUNT: return ACK_GET_RECORD_COUNT;
                 case DOES_RECORD_EXIST: return ACK_DOES_RECORD_EXIST;
                 case TRANSFER_RECORD: return ACK_TRANSFER_RECORD;
