@@ -24,6 +24,7 @@
 package UDP;
 
 import Models.AddressBook;
+import Models.RegisteredReplica;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -32,11 +33,11 @@ import java.net.MulticastSocket;
 /**
  *
  * @author cmcarthur
- * 
+ *
  * EXAMPLE USAGE:
- * 
+ *
  * public class Example implements RequestListener.Processor {
- * 
+ *
  * final private RequestListener m_Listener;
  * private Thread m_ListenerThread;
  * 
@@ -63,7 +64,7 @@ import java.net.MulticastSocket;
  *     }
  *     return "SUCCESS MESSSAGE - HELLO WORLD!";
  * }
- * 
+ *
  */
 public class RequestListener implements Runnable {
 
@@ -78,6 +79,7 @@ public class RequestListener implements Runnable {
     }
 
     private AddressBook m_Address;
+    private RegisteredReplica m_InstanceId;
 
     final private Processor m_Handler;
 
@@ -93,6 +95,21 @@ public class RequestListener implements Runnable {
     public RequestListener(Processor handler, AddressBook address) {
         m_Handler = handler;
         m_Address = address;
+        m_InstanceId = RegisteredReplica.EVERYONE;
+        m_ShouldContinueWorking = false;
+        m_ProcessingHasBegun = false;
+    }
+
+    /**
+     * @param handler the callback to process new request messages
+     * @param address your local address you want to listen from
+     * @param instanceId the specific location which packets should be for;
+     * packets dst for other locs will be dropped
+     */
+    public RequestListener(Processor handler, AddressBook address, RegisteredReplica instanceId) {
+        m_Handler = handler;
+        m_Address = address;
+        m_InstanceId = instanceId;
         m_ShouldContinueWorking = false;
         m_ProcessingHasBegun = false;
     }
@@ -132,6 +149,10 @@ public class RequestListener implements Runnable {
 
             Message response = processRequest(request);
 
+            if (response == null) {
+                continue; // Nothing to do!
+            }
+
             try {
                 m_Socket.send(response.getPacket());
             } catch (IOException ex) {
@@ -167,6 +188,12 @@ public class RequestListener implements Runnable {
     }
 
     private Message processRequest(Message request) {
+        if (request.getLocation() != RegisteredReplica.EVERYONE
+                || request.getLocation() != m_InstanceId) {
+            System.out.println("Dropping request for [ " + request.getLocation().toString() + " ]");
+            return null;
+        }
+
         System.out.println("Processing new request...");
         String responsePayload;
         OperationCode responseCode = OperationCode.INVALID;

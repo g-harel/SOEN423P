@@ -57,7 +57,7 @@ public class Message {
 
         this.m_Code = code;
         this.m_SeqNum = seq;
-        this.m_Location = RegisteredReplica.INVALID;
+        this.m_Location = RegisteredReplica.EVERYONE;
         this.m_Data = data;
         this.m_Addr = addrInfo.getAddr();
         this.m_Port = addrInfo.getPort();
