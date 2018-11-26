@@ -1,10 +1,10 @@
 package Manager;
 
 import Models.AddressBook;
+import Models.RegisteredReplica;
 import UDP.Message;
 import UDP.RequestListener;
 import model.ManagersMap;
-import model.RegisteredReplica;
 /**
  * This class is receiving data and redirect to the right manager
  * @author winterhart

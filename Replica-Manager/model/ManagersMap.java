@@ -3,6 +3,7 @@ package model;
 import java.util.HashMap;
 
 import Manager.Manager;
+import Models.RegisteredReplica;
 
 public class ManagersMap {
 	private static final long serialVersionUID = 1L;

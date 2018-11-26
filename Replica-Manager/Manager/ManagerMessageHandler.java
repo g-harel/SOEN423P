@@ -2,9 +2,9 @@ package Manager;
 
 import java.util.HashMap;
 
+import Models.RegisteredReplica;
 import UDP.Message;
 import model.ManagersMap;
-import model.RegisteredReplica;
 
 /**
  * Handles message , parse if needed and redirect to the right Replica Manager
