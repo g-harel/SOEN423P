@@ -23,7 +23,6 @@
  */
 package UDP;
 
-import Models.Location;
 import Models.RegisteredReplica;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -36,14 +35,18 @@ import java.net.SocketException;
  *
  * EXAMPLE USAGE:
  *
- * public void foo() { Socket instance = new Socket(); Message send = new
- * Message(OperationCode.TRANSFER_RECORD, // The operation you'd like to perform
- * 0, // The Sequence Number, will only be Zero between FE and SEQ, otherwise
- * copy from request "TESTING", // The beautiful message you'd like pass ( as a
- * string ) TEST_ADDR); // You the message is intended for
+ * public void foo() {
+ *     Socket instance = new Socket();
+ *     Message send = new Message(OperationCode.TRANSFER_RECORD, // The operation you'd like to perform
+ *                                0, // The Sequence Number, will only be Zero between FE and SEQ, otherwise
+ *                                copy from request "TESTING", // The beautiful message you'd like pass ( as a string ) 
+ *                                TEST_ADDR); // You the message is intended for
  *
- * if( ! instance.Send(send, 10, 1000) ) { throw new Exception("Failed to
- * communicate with " + TEST_ADDR.toString() ); } }
+ *     if( ! instance.Send(send, 10, 1000) ) {
+ *         throw   new Exception("Failed to communicate with " + TEST_ADDR.toString() );
+ *     }
+ * }
+ * 
  */
 public class Socket {
 
@@ -98,7 +101,7 @@ public class Socket {
     /*
     for when you need to with specific location!
     
-    @locations will send to an array of locatiions, ignores INVALID... simply pass Location.values()
+    @locations will send to an array of locatiions, ignores EVERYONE... simply pass Location.values()
     @msg the message
     @retryCounter Number of times to retry, (ie 10 for 10 attempts)
     @timeout time to wait for ack to arrive
@@ -109,7 +112,7 @@ public class Socket {
         boolean retval = true;
 
         for (RegisteredReplica loc : locations) {
-            if (loc == RegisteredReplica.INVALID) {
+            if (loc == RegisteredReplica.EVERYONE) {
                 continue;
             }
 

@@ -98,7 +98,7 @@ public class SocketTest implements RequestListener.Processor {
         InetAddress addr = InetAddress.getLoopbackAddress();
 
         // using invalid port 'ensures' we wont get an answer
-        Message send = new Message(OperationCode.TRANSFER_RECORD, 0, RegisteredReplica.INVALID, "TESTING", addr, 46873);
+        Message send = new Message(OperationCode.TRANSFER_RECORD, 0, RegisteredReplica.EVERYONE, "TESTING", addr, 46873);
         Socket instance = new Socket();
 
         assertEquals(false, instance.send(send, 5, 500));
@@ -138,7 +138,7 @@ public class SocketTest implements RequestListener.Processor {
         for (Message msg : m_ListOfMessages) {
             assertEquals(msg.getOpCode(), send.getOpCode());
             assertEquals(msg.getData(), "EVERYWHERE");
-            assertNotEquals(msg.getLocation(), RegisteredReplica.INVALID);
+            assertNotEquals(msg.getLocation(), RegisteredReplica.EVERYONE);
         }
 
         assertEquals(m_Socket.getResponse().getSeqNum(), 98465);
