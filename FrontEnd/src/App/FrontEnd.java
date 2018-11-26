@@ -120,7 +120,7 @@ public class FrontEnd extends IFrontEndPOA {
     }
 
     @Override
-    public synchronized String createMRecord(String managerID, String firstName, String lastName, int employeeID, String mailID, Project project, String location) {
+    public String createMRecord(String managerID, String firstName, String lastName, int employeeID, String mailID, Project project, String location) {
         ClientRequest request = setupClientRequest(managerID);
 
         request.addRequestDataEntry("managerID", managerID);
@@ -131,8 +131,13 @@ public class FrontEnd extends IFrontEndPOA {
         request.addRequestDataEntry("project", project);
         request.addRequestDataEntry("location", location);
 
-        sendRequestToSequencer(request);
-        return "";
+        try {
+            sendRequestToSequencer(request);
+        } catch (Exception ex) {
+            return ex.getMessage();
+        }
+        
+        return socket.getResponse().getData();
     }
 
     @Override
@@ -146,8 +151,13 @@ public class FrontEnd extends IFrontEndPOA {
         request.addRequestDataEntry("mailID", mailID);
         request.addRequestDataEntry("projectID", projectID);
 
-        sendRequestToSequencer(request);
-        return "";
+        try {
+            sendRequestToSequencer(request);
+        } catch (Exception ex) {
+            return ex.getMessage();
+        }
+        
+        return socket.getResponse().getData();
     }
 
     @Override
@@ -158,7 +168,7 @@ public class FrontEnd extends IFrontEndPOA {
     }
 
     @Override
-    public synchronized String editRecord(String managerID, String recordID, String fieldName, String newValue) {
+    public String editRecord(String managerID, String recordID, String fieldName, String newValue) {
         ClientRequest request = setupClientRequest(managerID);
 
         request.addRequestDataEntry("managerID", managerID);
@@ -237,7 +247,7 @@ public class FrontEnd extends IFrontEndPOA {
             System.out.println("Message was too big!");
         }
 
-        if (messageToSend == null) {
+        if (messageToSend != null) {
             if( ! socket.send(messageToSend, 5, 1000) )
                 throw new Exception("Unable to process message within system!");
         }
