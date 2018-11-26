@@ -23,6 +23,7 @@
  */
 package App;
 
+import FrontEnd.Listener;
 import Models.AddressBook;
 import Models.Location;
 import Models.RegisteredReplica;
@@ -38,109 +39,32 @@ import Interface.Corba.IFrontEndHelper;
 import Interface.Corba.IFrontEndPOA;
 import Interface.Corba.Project;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
+import java.net.SocketException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.omg.CORBA.ORB;
+import org.omg.CORBA.ORBPackage.InvalidName;
 import org.omg.CosNaming.NameComponent;
 import org.omg.CosNaming.NamingContextExt;
 import org.omg.CosNaming.NamingContextExtHelper;
+import org.omg.CosNaming.NamingContextPackage.CannotProceed;
+import org.omg.CosNaming.NamingContextPackage.NotFound;
 import org.omg.PortableServer.POA;
 import org.omg.PortableServer.POAHelper;
+import org.omg.PortableServer.POAManagerPackage.AdapterInactive;
+import org.omg.PortableServer.POAPackage.ServantNotActive;
+import org.omg.PortableServer.POAPackage.WrongPolicy;
 
 /**
  *
  * @author cmcarthur
  */
 public class FrontEnd extends IFrontEndPOA {
-
-	private ConsensusTracker consensusTracker = new ConsensusTracker(3);
-	
-
-    private class FrontEndListerner implements Processor {
-    	final private RequestListener m_Listener;
-    	private Thread m_ListenerThread;
-    	
-    	public FrontEndListerner() {
-    		m_Listener = new RequestListener(this, AddressBook.FRONTEND);
-    	}
-    	
-		public void launch(){
-			m_ListenerThread = new Thread(m_Listener);
-			m_ListenerThread.start();
-//			m_Listener.Wait(); // Make sure it's running before getting any farther ( optional )
-		}
-		
-		public void shutdown() {
-			m_Listener.Stop();
-			
-			try {
-				m_ListenerThread.join();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		
-		/**
-	 	 *  Operation Handled:
-	 	 *  OPERATION_RETVAL(1005)
-	 	 */
-		@Override
-		public String handleRequestMessage(Message msg) throws Exception {
-			if (msg.getOpCode() == OperationCode.OPERATION_RETVAL && msg.getData().contains("ReplicaResponse")) {
-                ObjectInputStream iStream = new ObjectInputStream(new ByteArrayInputStream(msg.getData().getBytes()));
-                Object input = iStream.readObject();
-                ReplicaResponse replicaResponse;
-                iStream.close();
-
-                if (input instanceof ReplicaResponse) {
-                	replicaResponse = (ReplicaResponse) input;
-                }
-                else {
-                    throw new IOException("Data received is not valid.");
-                }
-                
-                int sequenceID = msg.getSeqNum();
-                String answer = replicaResponse.getResponse();
-                RegisteredReplica replicaID = replicaResponse.getReplicaID();
-
-                RequestConsensus requestConsensus = consensusTracker.getRequestConsensus(sequenceID);
-
-                if(requestConsensus == null) {
-                	requestConsensus = new RequestConsensus(answer, replicaID);
-                	consensusTracker.addRequestConsensus(sequenceID, requestConsensus);
-                }
-                else {
-                	requestConsensus.addAnswer(answer, replicaID);
-
-                	if(requestConsensus.shouldSendConsensus()) {
-                		List<RegisteredReplica> softwareFailures = requestConsensus.getSoftwareFailures();
-
-                		if(softwareFailures.size() > 0) {
-                			for(RegisteredReplica replica: softwareFailures) {
-                				sendMulticastToRMs(OperationCode.FAULY_RESP_NOTIFICATION, msg.getSeqNum(), replica);
-                			}
-                    	}
-
-                		return requestConsensus.getConsensusAnswer();
-                	}
-                }
-            }
-            else {
-            	throw new IOException("The response received is not valid.\n" + 
-            							"Responses need to hava the OperationCode `" + OperationCode.OPERATION_RETVAL + "` and " +
-            							"a serialized ReplicaResponse object as data.");
-            }
-			return null;
-		}
-    }
 
     /**
      * @param args the command line arguments
@@ -167,7 +91,6 @@ public class FrontEnd extends IFrontEndPOA {
 
             // get object reference from the servant
             FrontEnd frontEnd = new FrontEnd();
-            frontEnd.startUDPListener();	// Start Front-end UDP server
 
             org.omg.CORBA.Object ref = rootpoa.servant_to_reference(frontEnd);
             IFrontEnd href = IFrontEndHelper.narrow(ref);
@@ -178,10 +101,15 @@ public class FrontEnd extends IFrontEndPOA {
 
             System.out.println("The Front-end (CORBA) is now running on port 1050 ...");
 
+            Listener requestListener = new Listener();
+            requestListener.launch();
+
             // wait for invocations from clients
             orb.run();
 
-        } catch (Exception e) {
+            requestListener.shutdown();
+
+        } catch (InterruptedException | SocketException | InvalidName | CannotProceed | org.omg.CosNaming.NamingContextPackage.InvalidName | NotFound | AdapterInactive | ServantNotActive | WrongPolicy e) {
             System.out.println("Failed to start the Front-End!");
             e.printStackTrace();
         }
@@ -256,9 +184,9 @@ public class FrontEnd extends IFrontEndPOA {
 		sendRequestToSequencer(request);
 	}
 
-	@Override
-	public void replicaCrash(String managerID) {
-		consensusTracker.decrementConsensusCountNeeded();
+    @Override
+    public void replicaCrash(String managerID) {
+        //m_ConsensusTracker.decrementConsensusCountNeeded();
 
 		ClientRequest request = setupClientRequest(managerID);
 		sendRequestToSequencer(request);
@@ -284,43 +212,26 @@ public class FrontEnd extends IFrontEndPOA {
 		}
 
         byte[] serializedClientRequest = bStream.toByteArray();
-        
-        Message messageToSend = null;
-        
-		try {
-			messageToSend = new Message(OperationCode.SERIALIZE, 0, serializedClientRequest.toString(), AddressBook.SEQUENCER);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		sendUDPRequest(messageToSend);
-	}
+        String payload = new String(serializedClientRequest);
 
-	private void sendMulticastToRMs(OperationCode opCode, int sequenceID, RegisteredReplica replicaID) {		
         Message messageToSend = null;
-        
-		try {
-			messageToSend = new Message(opCode, sequenceID, replicaID.toString(), AddressBook.MANAGER);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-        
-		sendUDPRequest(messageToSend);
-	}
+        try {
+            messageToSend = new Message(OperationCode.SERIALIZE, 0, payload, AddressBook.SEQUENCER);
+        } catch (Exception ex) {
+            System.out.println("Message was too big!");
+        }
 
-    private void sendUDPRequest(Message messageToSend) {    	
-    	try {
-    		Socket socket = new Socket();
-			socket.send(messageToSend, 5, 1000);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+        if (messageToSend == null) {
+            sendUDPRequest(messageToSend);
+        }
     }
 
-    // Starts the UDP RequestListener to receive the responses from the Replicas
-    public void startUDPListener() {
-    	FrontEndListerner frontEndListerner = new FrontEndListerner();
-    	frontEndListerner.launch();
-
-    	System.out.println("Front-End started to listen for UDP requests on port: " + AddressBook.FRONTEND.getPort());
+    private void sendUDPRequest(Message messageToSend) {
+        try {
+            Socket socket = new Socket();
+            socket.send(messageToSend, 5, 1000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
