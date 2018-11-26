@@ -26,14 +26,10 @@ package App;
 import FrontEnd.Listener;
 import Models.AddressBook;
 import Models.Location;
-import Models.RegisteredReplica;
 import UDP.Message;
 import UDP.OperationCode;
-import UDP.RequestListener;
-import UDP.RequestListener.Processor;
 import UDP.Socket;
 import Utility.ClientRequest;
-import Utility.ReplicaResponse;
 import Interface.Corba.IFrontEnd;
 import Interface.Corba.IFrontEndHelper;
 import Interface.Corba.IFrontEndPOA;
@@ -46,6 +42,8 @@ import java.io.ObjectOutputStream;
 import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 import org.omg.CORBA.ORB;
 import org.omg.CORBA.ORBPackage.InvalidName;
@@ -65,6 +63,8 @@ import org.omg.PortableServer.POAPackage.WrongPolicy;
  * @author cmcarthur
  */
 public class FrontEnd extends IFrontEndPOA {
+
+    final private Socket socket;
 
     /**
      * @param args the command line arguments
@@ -115,6 +115,10 @@ public class FrontEnd extends IFrontEndPOA {
         }
     }
 
+    public FrontEnd() throws SocketException {
+        this.socket = new Socket();
+    }
+
     @Override
     public synchronized String createMRecord(String managerID, String firstName, String lastName, int employeeID, String mailID, Project project, String location) {
         ClientRequest request = setupClientRequest(managerID);
@@ -162,8 +166,13 @@ public class FrontEnd extends IFrontEndPOA {
         request.addRequestDataEntry("fieldName", fieldName);
         request.addRequestDataEntry("newValue", newValue);
 
-        sendRequestToSequencer(request);
-        return "";
+        try {
+            sendRequestToSequencer(request);
+        } catch (Exception ex) {
+            return ex.getMessage();
+        }
+        
+        return socket.getResponse().getData();
     }
 
     @Override
@@ -174,42 +183,49 @@ public class FrontEnd extends IFrontEndPOA {
         request.addRequestDataEntry("recordID", recordID);
         request.addRequestDataEntry("location", location);
 
-        sendRequestToSequencer(request);
-        return "";
+        try {
+            sendRequestToSequencer(request);
+        } catch (Exception ex) {
+            return ex.getMessage();
+        }
+        
+        return socket.getResponse().getData();
     }
 
-	@Override
-	public void softwareFailure(String managerID) {
-		ClientRequest request = setupClientRequest(managerID);
-		sendRequestToSequencer(request);
-	}
+    @Override
+    public void softwareFailure(String managerID) {
+        ClientRequest request = setupClientRequest(managerID);
+        try {
+            sendRequestToSequencer(request);
+        } catch (Exception ex) {
+            Logger.getLogger(FrontEnd.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
     @Override
     public void replicaCrash(String managerID) {
         //m_ConsensusTracker.decrementConsensusCountNeeded();
 
-		ClientRequest request = setupClientRequest(managerID);
-		sendRequestToSequencer(request);
-	}
+        ClientRequest request = setupClientRequest(managerID);
+        try {
+            sendRequestToSequencer(request);
+        } catch (Exception ex) {
+            Logger.getLogger(FrontEnd.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
-	private ClientRequest setupClientRequest(String managerID) {
-		String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-		String location = managerID.substring(0, 2);
+    private ClientRequest setupClientRequest(String managerID) {
+        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+        String location = managerID.substring(0, 2);
 
-		return new ClientRequest(methodName, location);
-	}
+        return new ClientRequest(methodName, location);
+    }
 
-	private void sendRequestToSequencer(ClientRequest clientRequest) {
-		ByteArrayOutputStream bStream = new ByteArrayOutputStream();
-        ObjectOutput oo;
-
-		try {
-			oo = new ObjectOutputStream(bStream);
-			oo.writeObject(clientRequest);
-	        oo.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+    private void sendRequestToSequencer(ClientRequest clientRequest) throws Exception {
+        ByteArrayOutputStream bStream = new ByteArrayOutputStream();
+        ObjectOutput oo = new ObjectOutputStream(bStream);
+        oo.writeObject(clientRequest);
+        oo.close();
 
         byte[] serializedClientRequest = bStream.toByteArray();
         String payload = new String(serializedClientRequest);
@@ -222,16 +238,8 @@ public class FrontEnd extends IFrontEndPOA {
         }
 
         if (messageToSend == null) {
-            sendUDPRequest(messageToSend);
-        }
-    }
-
-    private void sendUDPRequest(Message messageToSend) {
-        try {
-            Socket socket = new Socket();
-            socket.send(messageToSend, 5, 1000);
-        } catch (Exception e) {
-            e.printStackTrace();
+            if( ! socket.send(messageToSend, 5, 1000) )
+                throw new Exception("Unable to process message within system!");
         }
     }
 }
