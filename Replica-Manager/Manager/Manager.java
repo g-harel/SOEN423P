@@ -4,10 +4,10 @@ import java.net.SocketException;
 import java.util.Stack;
 
 import Models.AddressBook;
+import Models.RegisteredReplica;
 import UDP.Message;
 import UDP.OperationCode;
 import UDP.Socket;
-import model.RegisteredReplica;
 
 public class Manager {
 	
