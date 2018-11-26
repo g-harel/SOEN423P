@@ -7,6 +7,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import Interface.Corba.Project;
 import Models.AddressBook;
@@ -14,6 +15,7 @@ import Models.RegisteredReplica;
 import UDP.Message;
 import UDP.OperationCode;
 import UDP.RequestListener;
+import UDP.Socket;
 import UDP.RequestListener.Processor;
 
 public abstract class AbstractReplica {
@@ -56,45 +58,19 @@ public abstract class AbstractReplica {
 				
 				int sequenceID = msg.getSeqNum();
 				
-				if(sequenceID == nextSequenceID) {
-					nextSequenceID++;
-				}
-				else if(sequenceID > nextSequenceID) {
+				// If the sequenceID is new. It's greater or equal to the expected sequenceID
+				if(sequenceID >= nextSequenceID) {
 					messagesQueue.put(sequenceID, msg);
+					processMessagesQueue();
 				}
-				
-				ReplicaResponse replicaResponse = AbstractReplica.this.processRequest(msg);
-				String serializedResponse = serializeReplicaResponse(replicaResponse);
-				
-				return serializedResponse;
-				
-				// Check if next request is in messagesQueue
-//				if(messagesQueue.get(nextSequenceID) != null) {
-//					handleRequestMessage(messagesQueue.get(nextSequenceID));
-//				}
             }
             else {
             	throw new IOException("The request received (" + msg.getSeqNum() + ") is not valid.\n" + 
             							"Requests need to hava the OperationCode `" + OperationCode.SERIALIZE + "` and " +
             							"a serialized ClientRequest object as data.");
             }
-		}
-		
-		private String serializeReplicaResponse(ReplicaResponse response) {
-			String serializedResponse = null;
 			
-	        try {
-	            ByteArrayOutputStream bStream = new ByteArrayOutputStream();
-	            ObjectOutput oo = new ObjectOutputStream(bStream);
-	            oo.writeObject(response);
-	            oo.close();
-
-	            serializedResponse = new String(bStream.toByteArray());
-	        } catch (IOException e) {
-	            e.printStackTrace();
-	        }
-	        
-	        return serializedResponse;
+			return null;
 		}
     }
 	
@@ -174,16 +150,64 @@ public abstract class AbstractReplica {
 			// TODO: Do something to get a wrong answer only for 1 replica
 			break;
 		case "replicaCrash":
-			// TODO: Do something to "crash" the replica
+			// TODO: Do something to "crash" only 1 replica
 			break;
 		default:
 			System.out.println("The method name received is not known.");
 			break;
 		}
 		
-//		replicaResponse.setReplicaID(replicaID);
-		replicaResponse.setSequenceID(message.getSeqNum());
+		replicaResponse.setReplicaID(replicaID);
 		
 		return replicaResponse;
 	}
+	
+	protected void processMessagesQueue() {
+		do {
+			Message requestMessage = messagesQueue.get(nextSequenceID);
+			ReplicaResponse replicaResponse = processRequest(requestMessage);
+			sendResponseToFrontEnd(replicaResponse, requestMessage.getSeqNum());
+			
+			// Removes the message (request) from the queue
+			messagesQueue.remove(nextSequenceID);
+			
+			nextSequenceID++;
+		} while(messagesQueue.get(nextSequenceID) != null);
+	}
+	
+	private void sendResponseToFrontEnd(ReplicaResponse replicaResponse, int sequenceID) {
+		ByteArrayOutputStream bStream = new ByteArrayOutputStream();
+        ObjectOutput oo;
+
+		try {
+			oo = new ObjectOutputStream(bStream);
+			oo.writeObject(replicaResponse);
+	        oo.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+        byte[] serializedReplicaResponse = bStream.toByteArray();
+        String payload = new String(serializedReplicaResponse);
+
+        Message messageToSend = null;
+        try {
+            messageToSend = new Message(OperationCode.OPERATION_RETVAL, sequenceID, payload, AddressBook.FRONTEND);
+        } catch (Exception ex) {
+            System.out.println("Message was too big!");
+        }
+
+        if (messageToSend == null) {
+            sendUDPRequest(messageToSend);
+        }
+    }
+	
+	private void sendUDPRequest(Message messageToSend) {
+        try {
+            Socket socket = new Socket();
+            socket.send(messageToSend, 5, 1000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

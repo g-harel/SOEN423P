@@ -20,9 +20,6 @@ public class Replica extends AbstractReplica {
 	
 	public static void main(String[] args) {
             for (Location loc: Location.values()) {
-            	if (loc == Location.INVALID) {
-                    continue;
-                }
                 CenterServer location_server = new CenterServer(loc);
                 Thread location_server_thread = new Thread(location_server);
                 location_server_thread.start();

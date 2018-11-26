@@ -221,7 +221,7 @@ public class FrontEnd extends IFrontEndPOA {
             System.out.println("Message was too big!");
         }
 
-        if (messageToSend == null) {
+        if (messageToSend != null) {
             sendUDPRequest(messageToSend);
         }
     }

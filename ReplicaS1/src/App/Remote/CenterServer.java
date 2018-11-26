@@ -42,7 +42,12 @@ public class CenterServer implements ICenterServer, Runnable {
     
     @Override
     public synchronized ReplicaResponse createMRecord(String managerID, String firstName, String lastName, int employeeID, String mailID, Project project, String location) {
-        Record newManager = new ManagerRecord(firstName, lastName, employeeID, mailID, project, Location.fromString(location));
+        Record newManager = null;
+		try {
+			newManager = new ManagerRecord(firstName, lastName, employeeID, mailID, project, Location.fromString(location));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
         
         return createRecord(managerID, newManager, "createMRecord");
     }
