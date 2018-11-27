@@ -21,8 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package App;
+package FrontEnd;
 
+import FrontEnd.FrontEnd;
 import Interface.Corba.Project;
 import Models.AddressBook;
 import Models.Location;
@@ -86,59 +87,6 @@ public class FrontEndTest implements RequestListener.Processor {
             assertEquals(msg.getData(), "TESTING ABC");
             assertEquals(msg.getSeqNum(), 1);
 }
-    }
-
-    /**
-     * Test of createERecord method, of class FrontEnd.
-     */
-    @Test
-    public void testCreateERecord() throws SocketException {
-        System.out.println("createERecord");
-        String managerID = "";
-        String firstName = "";
-        String lastName = "";
-        int employeeID = 0;
-        String mailID = "";
-        String projectID = "";
-        FrontEnd instance = new FrontEnd();
-        String expResult = "";
-        String result = instance.createERecord(managerID, firstName, lastName, employeeID, mailID, projectID);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of getRecordCounts method, of class FrontEnd.
-     */
-    @Test
-    public void testGetRecordCounts() throws SocketException {
-        System.out.println("getRecordCounts");
-        String managerID = "";
-        FrontEnd instance = new FrontEnd();
-        String expResult = "";
-        String result = instance.getRecordCounts(managerID);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
-    }
-
-    /**
-     * Test of editRecord method, of class FrontEnd.
-     */
-    @Test
-    public void testEditRecord() throws SocketException {
-        System.out.println("editRecord");
-        String managerID = "";
-        String recordID = "";
-        String fieldName = "";
-        String newValue = "";
-        FrontEnd instance = new FrontEnd();
-        String expResult = "";
-        String result = instance.editRecord(managerID, recordID, fieldName, newValue);
-        assertEquals(expResult, result);
-        // TODO review the generated test code and remove the default call to fail.
-        fail("The test case is a prototype.");
     }
 
     @Override

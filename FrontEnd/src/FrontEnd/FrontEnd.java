@@ -21,18 +21,14 @@
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
  */
-package App;
+package FrontEnd;
 
-import FrontEnd.ConsensusTracker;
-import FrontEnd.Listener;
 import Models.AddressBook;
 import Models.Location;
 import UDP.Message;
 import UDP.OperationCode;
 import UDP.Socket;
 import Utility.ClientRequest;
-import Interface.Corba.IFrontEnd;
-import Interface.Corba.IFrontEndHelper;
 import Interface.Corba.IFrontEndPOA;
 import Interface.Corba.Project;
 import Models.RegisteredReplica;
@@ -40,95 +36,32 @@ import Models.RegisteredReplica;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.Array;
 import java.net.SocketException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
-import org.omg.CORBA.ORB;
-import org.omg.CORBA.ORBPackage.InvalidName;
-import org.omg.CosNaming.NameComponent;
-import org.omg.CosNaming.NamingContextExt;
-import org.omg.CosNaming.NamingContextExtHelper;
-import org.omg.CosNaming.NamingContextPackage.CannotProceed;
-import org.omg.CosNaming.NamingContextPackage.NotFound;
-import org.omg.PortableServer.POA;
-import org.omg.PortableServer.POAHelper;
-import org.omg.PortableServer.POAManagerPackage.AdapterInactive;
-import org.omg.PortableServer.POAPackage.ServantNotActive;
-import org.omg.PortableServer.POAPackage.WrongPolicy;
 
 /**
  *
  * @author cmcarthur
  */
 public class FrontEnd extends IFrontEndPOA {
-    
+
     final private Socket socket;
+    final private Listener m_RequestListener;
     private int requiredAnswersForAgreement;
-    static Listener m_RequestListener;
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        if (args.length < 4) {
-            args = Stream.of("-ORBInitialPort", "1050", "-ORBInitialHost", "localhost").toArray(String[]::new);
-        }
-        try {
-            // create and initialize the ORB
-            ORB orb = ORB.init(args, null);
-
-            // get reference to rootpoa & activate the POAManager
-            POA rootpoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
-            rootpoa.the_POAManager().activate();
-
-            // get the root naming context
-            // NameService invokes the name service
-            org.omg.CORBA.Object objRef = orb.resolve_initial_references("NameService");
-
-            // Use NamingContextExt which is part of the Interoperable
-            // Naming Service (INS) specification.
-            NamingContextExt ncRef = NamingContextExtHelper.narrow(objRef);
-
-            // get object reference from the servant
-            FrontEnd frontEnd = new FrontEnd();
-            
-            org.omg.CORBA.Object ref = rootpoa.servant_to_reference(frontEnd);
-            IFrontEnd href = IFrontEndHelper.narrow(ref);
-
-            // bind the Object Reference in Naming
-            NameComponent path[] = ncRef.to_name(AddressBook.FRONTEND.getShortHandName());
-            ncRef.rebind(path, href);
-            
-            System.out.println("The Front-end (CORBA) is now running on port 1050 ...");
-            
-            m_RequestListener = new Listener();
-            m_RequestListener.launch();
-
-            // wait for invocations from clients
-            orb.run();
-            
-            m_RequestListener.shutdown();
-            
-        } catch (InterruptedException | SocketException | InvalidName | CannotProceed | org.omg.CosNaming.NamingContextPackage.InvalidName | NotFound | AdapterInactive | ServantNotActive | WrongPolicy e) {
-            System.out.println("Failed to start the Front-End!");
-            e.printStackTrace();
-        }
-    }
-    
     public FrontEnd() throws SocketException {
         this.socket = new Socket();
         requiredAnswersForAgreement = 3;
+        m_RequestListener = new Listener();
+        m_RequestListener.launch();
     }
-    
+
     @Override
     public String createMRecord(String managerID, String firstName, String lastName, int employeeID, String mailID, Project project, String location) {
         ClientRequest request = setupClientRequest(managerID);
-        
+
         request.addRequestDataEntry("managerID", managerID);
         request.addRequestDataEntry("firstName", firstName);
         request.addRequestDataEntry("lastName", lastName);
@@ -136,180 +69,184 @@ public class FrontEnd extends IFrontEndPOA {
         request.addRequestDataEntry("mailID", mailID);
         request.addRequestDataEntry("project", project);
         request.addRequestDataEntry("location", location);
-        
+
         try {
             sendRequestToSequencer(request);
         } catch (Exception ex) {
             return ex.getMessage();
         }
-        
+
         int seqNumber = Integer.valueOf(socket.getResponse().getData().substring("SEQ=".length()));
-        
+
         ConsensusTracker tracker = new ConsensusTracker(requiredAnswersForAgreement, seqNumber);
-        
+
         m_RequestListener.setTracker(tracker);
-        
+
         try {
             tracker.Wait();
         } catch (InterruptedException ex) {
             return "Error: could not obtain answer";
         }
-        
+
         m_RequestListener.setTracker(null);
-        
+
         processesFailures(tracker);
-        
+
         return tracker.getAnswer();
     }
-    
+
     @Override
     public String createERecord(String managerID, String firstName, String lastName, int employeeID, String mailID, String projectID) {
         ClientRequest request = setupClientRequest(managerID);
-        
+
         request.addRequestDataEntry("managerID", managerID);
         request.addRequestDataEntry("firstName", firstName);
         request.addRequestDataEntry("lastName", lastName);
         request.addRequestDataEntry("employeeID", employeeID);
         request.addRequestDataEntry("mailID", mailID);
         request.addRequestDataEntry("projectID", projectID);
-        
+
         try {
             sendRequestToSequencer(request);
         } catch (Exception ex) {
             return ex.getMessage();
         }
-        
+
         int seqNumber = Integer.valueOf(socket.getResponse().getData().substring("SEQ=".length()));
-        
+
         ConsensusTracker m_ConsensusTracker;
-        
+
         return "ER";
     }
-    
+
     @Override
     public String getRecordCounts(String managerID) {
         Map<Location, Integer> recordCount = new HashMap<>();
-        
+
         return recordCount.toString();
     }
-    
+
     @Override
     public String editRecord(String managerID, String recordID, String fieldName, String newValue) {
         ClientRequest request = setupClientRequest(managerID);
-        
+
         request.addRequestDataEntry("managerID", managerID);
         request.addRequestDataEntry("recordID", recordID);
         request.addRequestDataEntry("fieldName", fieldName);
         request.addRequestDataEntry("newValue", newValue);
-        
+
         try {
             sendRequestToSequencer(request);
         } catch (Exception ex) {
             return ex.getMessage();
         }
-        
+
         return socket.getResponse().getData();
     }
-    
+
     @Override
     public String transferRecord(String managerID, String recordID, String location) {
         ClientRequest request = setupClientRequest(managerID);
-        
+
         request.addRequestDataEntry("managerID", managerID);
         request.addRequestDataEntry("recordID", recordID);
         request.addRequestDataEntry("location", location);
-        
+
         try {
             sendRequestToSequencer(request);
         } catch (Exception ex) {
             return ex.getMessage();
         }
-        
+
         return socket.getResponse().getData();
     }
-    
+
     @Override
     public void softwareFailure(String managerID) {
         requiredAnswersForAgreement--;
     }
-    
+
     @Override
     public void replicaCrash(String managerID) {
         requiredAnswersForAgreement--;
     }
-    
+
     private ClientRequest setupClientRequest(String managerID) {
         String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
         String location = managerID.substring(0, 2);
-        
+
         return new ClientRequest(methodName, location);
     }
-    
+
     private void sendRequestToSequencer(ClientRequest clientRequest) throws Exception {
         ByteArrayOutputStream bStream = new ByteArrayOutputStream();
         ObjectOutput oo = new ObjectOutputStream(bStream);
         oo.writeObject(clientRequest);
         oo.close();
-        
+
         byte[] serializedClientRequest = bStream.toByteArray();
         String payload = new String(serializedClientRequest);
-        
+
         Message messageToSend = null;
         try {
             messageToSend = new Message(OperationCode.SERIALIZE, 0, payload, AddressBook.SEQUENCER);
         } catch (Exception ex) {
             System.out.println("Message was too big!");
         }
-        
+
         if (messageToSend != null) {
             if (!socket.send(messageToSend, 5, 1000)) {
                 throw new Exception("Unable to process message within system!");
             }
         }
     }
-    
+
     private void processesFailures(ConsensusTracker tracker) {
         processesFailuresBadResponses(tracker);
         processesMissingResponses(tracker);
     }
-    
+
     private void processesFailuresBadResponses(ConsensusTracker tracker) {
         LinkedList<RegisteredReplica> inError = tracker.getFailures();
-        
+
         RegisteredReplica errors[] = new RegisteredReplica[inError.size()];
         errors = inError.toArray(errors);
-        
+
         Message notice = null;
         try {
             notice = new Message(OperationCode.FAULY_RESP_NOTIFICATION, 0, "Your replica Errored!", AddressBook.MANAGER);
         } catch (Exception ex) {
             // This is impossible
         }
-        
+
         try {
             socket.sendTo(errors, notice, 10, 1000);
         } catch (Exception ex) {
             System.out.println("Unable to notify Replica Manager of failure due to " + ex.getMessage());
         }
     }
-    
+
     private void processesMissingResponses(ConsensusTracker tracker) {
         LinkedList<RegisteredReplica> inError = tracker.getMissingAnswers();
-        
+
         RegisteredReplica errors[] = new RegisteredReplica[inError.size()];
         errors = inError.toArray(errors);
-        
+
         Message notice = null;
         try {
             notice = new Message(OperationCode.ACK_NO_RESP_NOTIFICATION, 0, "Your replica Errored!", AddressBook.MANAGER);
         } catch (Exception ex) {
             // This is impossible
         }
-        
+
         try {
             socket.sendTo(errors, notice, 10, 1000);
         } catch (Exception ex) {
             System.out.println("Unable to notify Replica Manager of failure due to " + ex.getMessage());
         }
+    }
+
+    public void shutdown() throws InterruptedException {
+        m_RequestListener.shutdown();
     }
 }
