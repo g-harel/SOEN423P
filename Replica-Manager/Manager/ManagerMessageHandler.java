@@ -19,7 +19,14 @@ public class ManagerMessageHandler {
 	public String HandleRequest(Message msg) {
 		
 		//Find out which Replica is targeted
-		RegisteredReplica replicaFound = parseFindReplicaName(msg.getData());
+		
+		RegisteredReplica replicaFound = null;
+		replicaFound = msg.getLocation();
+		if(replicaFound == RegisteredReplica.EVERYONE || replicaFound == null) {
+			//Parse Data if not set
+			replicaFound  = parseFindReplicaName(msg.getData());
+		}
+
 		if(replicaFound == null) {
 			//TODO: log this, error
 			System.out.println("Was not able to find the replica name");
