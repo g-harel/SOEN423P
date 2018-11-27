@@ -20,7 +20,7 @@ import config.PortConfiguration;
 import model.Employee;
 import model.Location;
 import model.Manager;
-import model.Project;
+import model.InternProject;
 import model.Record;
 import storage.IStore;
 
@@ -28,20 +28,17 @@ public class HRActions implements IHRActions  {
 
 	private String DEFAULT_LOG_FILE = "Log.txt";
 	private  Map<Integer, ArrayList<Record>> db;
-	private  List<Project> dbProject;
+	private  List<InternProject> dbProject;
 	private List<String> currentRecordID;
 	private List<String> currentProjectID;
 	private  List<String> currentManagerID;
 	IStore store;
-
-
-	private ORB orb;
 	
 	public HRActions(IStore storingEngine) {
 		super();
 		this.store = storingEngine;
 		db = new HashMap<Integer, ArrayList<Record>>();
-		dbProject = new ArrayList<Project>();
+		dbProject = new ArrayList<InternProject>();
 		currentRecordID = new ArrayList<String>();
 		currentProjectID = new ArrayList<String>();
 		currentManagerID = new ArrayList<String>();
@@ -61,8 +58,8 @@ public class HRActions implements IHRActions  {
 	}
 	private void restoreFromStorage() {		
 		store.writeLog("Restoring Data from Storage...", DEFAULT_LOG_FILE);
-		List<Project> restoredProject = store.restoreProject();
-		for (Project project : restoredProject) {
+		List<InternProject> restoredProject = store.restoreProject();
+		for (InternProject project : restoredProject) {
 			dbProject.add(project);
 			currentProjectID.add(project.getProjectID());
 		}
@@ -108,7 +105,7 @@ public class HRActions implements IHRActions  {
 
 	@Override
 	public synchronized String createMRecord (String firstName, String lastName, String employeeID, 
-			String mailID, Project[] projects, 
+			String mailID, InternProject[] projects, 
 			Location location, String managerAuthorOfRequest){
 		
 		store.writeLog("Attempt to write a new Manager: " + managerAuthorOfRequest , DEFAULT_LOG_FILE);
@@ -134,9 +131,9 @@ public class HRActions implements IHRActions  {
 			
 			List<String> projectIn = ConvertToInternalProjectObj(projects);
 			
-			List<Project> projectToPassIn = new ArrayList<Project>();
+			List<InternProject> projectToPassIn = new ArrayList<InternProject>();
 			//Validate Project ID: Must already exists
-			for(Project proj: dbProject) {
+			for(InternProject proj: dbProject) {
 				if(projectIn.contains(proj.getProjectID())) {
 					projectToPassIn.add(proj);
 				}
@@ -199,9 +196,9 @@ public class HRActions implements IHRActions  {
 
 	}
 
-	private List<String> ConvertToInternalProjectObj(Project[] projects) {
+	private List<String> ConvertToInternalProjectObj(InternProject[] projects) {
 		List<String> createdProject = new ArrayList<String>();
-		for(Project proj: projects) {
+		for(InternProject proj: projects) {
 			createdProject.add(proj.getProjectID());
 		}
 		return createdProject;
@@ -454,7 +451,7 @@ public class HRActions implements IHRActions  {
 			}
 			return UpdateManager(mrecord, fieldName, newValue, managerID);
 		case 'P':
-			Project project = FindProjectWithId(recordID);
+			InternProject project = FindProjectWithId(recordID);
 			if(project== null) {
 				return "Can't find the project";
 			}
@@ -473,7 +470,7 @@ public class HRActions implements IHRActions  {
 	 * @param value
 	 * @return true if updated
 	 */
-	private String UpdateProject(Project proj, String fieldName, Object value) {
+	private String UpdateProject(InternProject proj, String fieldName, Object value) {
 
 		
 		String[] allowedFields = {"clientName", "projectName"};
@@ -607,10 +604,10 @@ public class HRActions implements IHRActions  {
 	 * @param recordID
 	 * @return
 	 */
-	private Project FindProjectWithId(String recordID) {
-		Project foundProj = null;
+	private InternProject FindProjectWithId(String recordID) {
+		InternProject foundProj = null;
 		
-		for(Project proj: dbProject) {
+		for(InternProject proj: dbProject) {
 			if(proj.getProjectID().equals(recordID)) {
 				return proj;
 			}
@@ -652,7 +649,7 @@ public class HRActions implements IHRActions  {
 			return false;
 		}
 		try {
-			Project newProj = new Project(projectID, clientName, projectName);
+			InternProject newProj = new InternProject(projectID, clientName, projectName);
 			if(dbProject.contains(newProj) || currentProjectID.contains(newProj.getProjectID())) {
 				store.writeLog("Project Already Exists", DEFAULT_LOG_FILE);
 			}else {
@@ -699,15 +696,15 @@ public class HRActions implements IHRActions  {
 			}
 		try {
 			if(recordConvertedBack != null) {
-				Project sampleProject = dbProject.get(0);
+				InternProject sampleProject = dbProject.get(0);
 				if(recordConvertedBack instanceof Manager) {
 					Manager man = (Manager) recordConvertedBack;
 					// Giving that manager a simple project
 
-					Project proj = new 
-							Project(sampleProject.getProjectID(), 
+					InternProject proj = new 
+							InternProject(sampleProject.getProjectID(), 
 									sampleProject.getClientName(), sampleProject.getProjectName());
-					Project[] newListProject = {proj};
+					InternProject[] newListProject = {proj};
 					Location currentLocation = 
 							convertStringToLocation(store.getStorageName());
 					
@@ -793,8 +790,8 @@ public class HRActions implements IHRActions  {
 		// Neutral Project Attribution
 		if(recordFound instanceof Manager) {
 			Manager castedManager = (Manager) recordFound;
-			Project emptyProj = new Project("P0000","EMPTY","EMPTY");
-			List<Project> emptyProjects = new ArrayList<Project>();
+			InternProject emptyProj = new InternProject("P0000","EMPTY","EMPTY");
+			List<InternProject> emptyProjects = new ArrayList<InternProject>();
 			emptyProjects.add(emptyProj);
 			castedManager.setCurrentProjects(emptyProjects);
 			
@@ -867,7 +864,6 @@ public class HRActions implements IHRActions  {
 	@Override
 	public synchronized void shutdown(String managerID) {
 		store.writeLog("Server has been shutdown by: " + managerID, DEFAULT_LOG_FILE);
-		orb.shutdown(false);
 	}
 
 

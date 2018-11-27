@@ -2,7 +2,7 @@ package storage;
 
 import java.util.List;
 
-import model.Project;
+import model.InternProject;
 import model.Record;
 
 public interface IStore {
@@ -15,7 +15,7 @@ public interface IStore {
 	
 	public void addRecord(Record record);
 	
-	public void addProject(Project project);
+	public void addProject(InternProject project);
 	
 	public String readAllProject();
 	
@@ -23,9 +23,9 @@ public interface IStore {
 
 	public void removeRecord(Record mrecord);
 
-	public void removeProject(Project proj);
+	public void removeProject(InternProject proj);
 	
-	public List<Project> restoreProject();
+	public List<InternProject> restoreProject();
 	
 	public List<Record> restoreRecord();
 	

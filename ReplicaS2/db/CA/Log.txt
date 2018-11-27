@@ -1,0 +1,35 @@
+Building Database...    who: CA   when: Tue Nov 27 00:31:08 EST 2018
+Building Database...    who: CA   when: Tue Nov 27 00:31:08 EST 2018
+Building Database...    who: CA   when: Tue Nov 27 00:31:08 EST 2018
+Restoring Data from Storage...    who: CA   when: Tue Nov 27 00:31:08 EST 2018
+Restoring Data from Storage...    who: CA   when: Tue Nov 27 00:31:08 EST 2018
+Restoring Data from Storage...    who: CA   when: Tue Nov 27 00:31:08 EST 2018
+We have 2 records to restore    who: CA   when: Tue Nov 27 00:31:08 EST 2018
+We have 2 records to restore    who: CA   when: Tue Nov 27 00:31:08 EST 2018
+RecordIndex1    who: CA   when: Tue Nov 27 00:31:08 EST 2018
+We have 2 records to restore    who: CA   when: Tue Nov 27 00:31:08 EST 2018
+RecordIndex1    who: CA   when: Tue Nov 27 00:31:08 EST 2018
+RecordIndex18    who: CA   when: Tue Nov 27 00:31:08 EST 2018
+RecordIndex18    who: CA   when: Tue Nov 27 00:31:08 EST 2018
+RecordIndex1    who: CA   when: Tue Nov 27 00:31:08 EST 2018
+RecordIndex18    who: CA   when: Tue Nov 27 00:31:08 EST 2018
+Building Database...    who: CA   when: Tue Nov 27 00:34:36 EST 2018
+Building Database...    who: CA   when: Tue Nov 27 00:34:36 EST 2018
+Building Database...    who: CA   when: Tue Nov 27 00:34:36 EST 2018
+Restoring Data from Storage...    who: CA   when: Tue Nov 27 00:34:36 EST 2018
+Restoring Data from Storage...    who: CA   when: Tue Nov 27 00:34:36 EST 2018
+Restoring Data from Storage...    who: CA   when: Tue Nov 27 00:34:36 EST 2018
+We have 2 records to restore    who: CA   when: Tue Nov 27 00:34:36 EST 2018
+We have 2 records to restore    who: CA   when: Tue Nov 27 00:34:36 EST 2018
+We have 2 records to restore    who: CA   when: Tue Nov 27 00:34:36 EST 2018
+RecordIndex1    who: CA   when: Tue Nov 27 00:34:36 EST 2018
+RecordIndex1    who: CA   when: Tue Nov 27 00:34:36 EST 2018
+RecordIndex18    who: CA   when: Tue Nov 27 00:34:36 EST 2018
+RecordIndex1    who: CA   when: Tue Nov 27 00:34:36 EST 2018
+RecordIndex18    who: CA   when: Tue Nov 27 00:34:36 EST 2018
+RecordIndex18    who: CA   when: Tue Nov 27 00:34:36 EST 2018
+Building Database...    who: CA   when: Tue Nov 27 00:37:42 EST 2018
+Restoring Data from Storage...    who: CA   when: Tue Nov 27 00:37:42 EST 2018
+We have 2 records to restore    who: CA   when: Tue Nov 27 00:37:42 EST 2018
+RecordIndex1    who: CA   when: Tue Nov 27 00:37:42 EST 2018
+RecordIndex18    who: CA   when: Tue Nov 27 00:37:42 EST 2018

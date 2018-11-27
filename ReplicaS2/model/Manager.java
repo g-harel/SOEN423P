@@ -5,7 +5,7 @@ public class Manager extends Record {
 
 	private String managerID;
 	private Location location;
-	private List<Project> currentProjects;
+	private List<InternProject> currentProjects;
 	private String firstName;
 	private String lastName;
 	private String mailID;
@@ -51,11 +51,11 @@ public class Manager extends Record {
 		this.location = location;
 	}
 
-	public List<Project> getCurrentProjects() {
+	public List<InternProject> getCurrentProjects() {
 		return currentProjects;
 	}
 
-	public void setCurrentProjects(List<Project> currentProjects) {
+	public void setCurrentProjects(List<InternProject> currentProjects) {
 		this.currentProjects = currentProjects;
 	}
 
@@ -65,7 +65,7 @@ public class Manager extends Record {
 			String lastName, 
 			String recordId,
 			String mailID, 
-			List<Project> projects, 
+			List<InternProject> projects, 
 			Location location, 
 			String managerId) {
 		
@@ -97,7 +97,7 @@ public class Manager extends Record {
 
 	private String getAllProjectId() {
 		StringBuilder allProjects = new StringBuilder();
-		for(Project proj : currentProjects) {
+		for(InternProject proj : currentProjects) {
 			allProjects.append(proj.getProjectID());
 			allProjects.append(",");
 		}

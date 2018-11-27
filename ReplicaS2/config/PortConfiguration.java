@@ -8,9 +8,9 @@ public class PortConfiguration {
 		private static HashMap<Location, Integer> serverConfig;
 		private static HashMap<Location, Integer> udpServerConfig;
 		private static HashMap<Location, Integer> udpTransfertConfig;
-		private static final int DEFAULT_CA_PORT = 5555;
-		private static final  int DEFAULT_US_PORT = 7777;
-		private static final int DEFAULT_UK_PORT = 4444;
+		private static final int DEFAULT_CA_PORT = 34503;
+		private static final  int DEFAULT_US_PORT = 54332;
+		private static final int DEFAULT_UK_PORT = 11234;
 		
 		
 		public static  int getDEFAULT_CA_PORT() {

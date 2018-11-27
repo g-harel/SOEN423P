@@ -1,0 +1,49 @@
+The UDP Server for: CA is start on port 5556    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for transfert record on: CA is started on port 5554    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for: CA is start on port 5556    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for transfert record on: CA is started on port 5554    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for: CA is start on port 5556    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for transfert record on: CA is started on port 5554    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for: US is start on port 7778    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for transfert record on: US is started on port 7776    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for: US is start on port 7778    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for transfert record on: US is started on port 7776    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for: US is start on port 7778    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for transfert record on: US is started on port 7776    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for: UK is start on port 4445    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for transfert record on: UK is started on port 4443    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The ReplicaS3 Server:  is launch    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for: UK is start on port 4445    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for transfert record on: UK is started on port 4443    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The ReplicaS3 Server:  is launch    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for: UK is start on port 4445    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for transfert record on: UK is started on port 4443    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The ReplicaS3 Server:  is launch    who: ServerConfigurator   when: Tue Nov 27 00:31:08 EST 2018
+The UDP Server for: CA is start on port 34504    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for: CA is start on port 34504    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for: CA is start on port 34504    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for transfert record on: CA is started on port 34502    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for transfert record on: CA is started on port 34502    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for transfert record on: CA is started on port 34502    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for: US is start on port 54333    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for: US is start on port 54333    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for transfert record on: US is started on port 54331    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for transfert record on: US is started on port 54331    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for: US is start on port 54333    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for transfert record on: US is started on port 54331    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for: UK is start on port 11235    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for transfert record on: UK is started on port 11233    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The ReplicaS2 Server:  is launch    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for: UK is start on port 11235    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for: UK is start on port 11235    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for transfert record on: UK is started on port 11233    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for transfert record on: UK is started on port 11233    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The ReplicaS2 Server:  is launch    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The ReplicaS2 Server:  is launch    who: ServerConfigurator   when: Tue Nov 27 00:34:36 EST 2018
+The UDP Server for: CA is start on port 34504    who: ServerConfigurator   when: Tue Nov 27 00:37:42 EST 2018
+The UDP Server for transfert record on: CA is started on port 34502    who: ServerConfigurator   when: Tue Nov 27 00:37:42 EST 2018
+The UDP Server for: US is start on port 54333    who: ServerConfigurator   when: Tue Nov 27 00:37:42 EST 2018
+The UDP Server for transfert record on: US is started on port 54331    who: ServerConfigurator   when: Tue Nov 27 00:37:42 EST 2018
+The UDP Server for: UK is start on port 11235    who: ServerConfigurator   when: Tue Nov 27 00:37:42 EST 2018
+The UDP Server for transfert record on: UK is started on port 11233    who: ServerConfigurator   when: Tue Nov 27 00:37:42 EST 2018
+The ReplicaS2 Server:  is launch    who: ServerConfigurator   when: Tue Nov 27 00:37:42 EST 2018

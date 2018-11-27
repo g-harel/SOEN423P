@@ -4,6 +4,7 @@ import Models.AddressBook;
 import Models.Location;
 import Models.RegisteredReplica;
 import Utility.AbstractReplica;
+import backEnd.ServerConfigurator;
 
 public class ReplicaS2 extends AbstractReplica {
 	
@@ -12,6 +13,8 @@ public class ReplicaS2 extends AbstractReplica {
 	}
 	
 	public static void main(String[] args) {
+		ServerConfigurator config = new ServerConfigurator();
+		config.configureCenter();
             for (Location loc: Location.values()) {
                 CenterServer location_server = new CenterServer(loc);
                 Thread location_server_thread = new Thread(location_server);

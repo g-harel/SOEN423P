@@ -6,12 +6,12 @@ import java.nio.file.Paths;
 public class StorageConfig {
 	
 	public static final String MAIN_TREE_FOLDER = 
-			getCurrentPath() + "ReplicaS2/db/";
+			getCurrentPath() + "/db/";
 	
 	public static final String CENTRAL_REPO_LOCATION =
-			getCurrentPath() + "ReplicaS2/db/CENTRAL/";
+			getCurrentPath() + "/db/CENTRAL/";
 	public static final String CENTRAL_REPO_CLIENT =
-			getCurrentPath() + "ReplicaS2/db/CLIENT/";
+			getCurrentPath() + "/db/CLIENT/";
 	private StorageConfig() {};
 	
 	private static String getCurrentPath() {

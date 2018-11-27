@@ -1,11 +1,11 @@
 package model;
-public class Project {
+public class InternProject {
 	private String projectID;
 	private String clientName;
 	private String projectName;
 	
 	
-	public Project(String projectID, String clientName, String projectName) {
+	public InternProject(String projectID, String clientName, String projectName) {
 		this.projectID = projectID;
 		this.clientName = clientName;
 		this.projectName = projectName;
@@ -67,7 +67,7 @@ public class Project {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Project other = (Project) obj;
+		InternProject other = (InternProject) obj;
 		if (clientName == null) {
 			if (other.clientName != null)
 				return false;

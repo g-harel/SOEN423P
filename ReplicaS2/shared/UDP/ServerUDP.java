@@ -19,6 +19,12 @@ public abstract class ServerUDP implements Runnable  {
 	IStore serverStore;
 	private static final String SERVER_ADDRESS = "locahost";
 	public boolean listen = true;
+	public boolean isListen() {
+		return listen;
+	}
+	public void setListen(boolean listen) {
+		this.listen = listen;
+	}
 	protected int assignedPort = 0;
 	
 	public ServerUDP(IHRActions serverInstance, int portUDP) {
@@ -32,4 +38,6 @@ public abstract class ServerUDP implements Runnable  {
 	public void setAssignedPort(int assignedPort) {
 		this.assignedPort = assignedPort;
 	}
+	
+	
 }

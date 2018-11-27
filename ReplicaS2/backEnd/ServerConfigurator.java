@@ -44,7 +44,7 @@ public class ServerConfigurator {
 	
 		}
 		
-		String startingMessage = "The ReplicaS3 Server: " +
+		String startingMessage = "The ReplicaS2 Server: " +
 				" is launch";
 
 		System.out.println(startingMessage);
@@ -60,13 +60,19 @@ public class ServerConfigurator {
 		// Create and pass a storing engine to the HRAction
 		IStore storingEngine = new Logger(loca.toString(), StorageConfig.MAIN_TREE_FOLDER + loca.toString() + "/");
 		
+		
 		int udpPortCounter = port + 1;
 		int udpPortTransfert = port -1;
 		try {
 
 			HRActions instanceHRAction = new HRActions(storingEngine);
+			CenterMap.addHRAction(loca, instanceHRAction);
 			ServerUDP udpObj = new RecordCounterUDP(instanceHRAction, udpPortCounter);
 			ServerUDP udpObjTransfer = new TransfertServerUDP(instanceHRAction, udpPortTransfert);
+			
+			InternalServers.addServer(udpObj);
+			InternalServers.addServer(udpObjTransfer);
+			
 			Thread UDPCounterThread = new Thread(udpObj);
 			Thread UDPTransfertThread  = new Thread(udpObjTransfer);
 			
@@ -90,9 +96,6 @@ public class ServerConfigurator {
 			PortConfiguration.addConfigUDP(loca, udpPortCounter);
 			PortConfiguration.addConfigUDPTransfert(loca, udpPortTransfert);
 			
-
-			
-			System.out.println("CORBA Setup finished for Server " + loca.toString());		
 			
 
 		}catch(Exception ee) {

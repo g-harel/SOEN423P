@@ -15,7 +15,7 @@ import java.util.List;
 import model.Employee;
 import model.Location;
 import model.Manager;
-import model.Project;
+import model.InternProject;
 import model.Record;
 
 import java.io.IOException;
@@ -106,7 +106,7 @@ public class Logger implements IStore {
 	}
 
 	@Override
-	public void addProject(Project project) {
+	public void addProject(InternProject project) {
 		Date date = new Date();
 		try {
 			FileWriter writer = new FileWriter(currentTargetFolder + "/" + DEFAULT_PROJECT_FILE_NAME,   true);
@@ -234,7 +234,7 @@ public class Logger implements IStore {
 	}
 
 	@Override
-	public void removeProject(Project proj) {
+	public void removeProject(InternProject proj) {
 		int lineNumberToRemove = findProject(proj);
 		if(lineNumberToRemove == 99999) {
 			return;
@@ -265,7 +265,7 @@ public class Logger implements IStore {
 		
 	}
 
-	private int findProject(Project proj) {
+	private int findProject(InternProject proj) {
 		try {
 			FileReader reader = new FileReader(currentTargetFolder + "/" + DEFAULT_PROJECT_FILE_NAME);
 			BufferedReader bReader = new BufferedReader(reader);
@@ -289,15 +289,15 @@ public class Logger implements IStore {
 	}
 
 	@Override
-	public List<Project> restoreProject() {
-		List<Project> returningProjects = new ArrayList<Project>();
+	public List<InternProject> restoreProject() {
+		List<InternProject> returningProjects = new ArrayList<InternProject>();
 		String allProjects = readAllProject();
 		String[] splittedProjects = allProjects.split("Project:");
 		for(String proj: splittedProjects) {
 			String[] projAttrib = proj.split("\\|");
 			if(projAttrib != null && projAttrib.length >= 3) {
 				// Created project object from storage
-				Project projectCreated = new Project(
+				InternProject projectCreated = new InternProject(
 						projAttrib[0], projAttrib[1],projAttrib[2]);
 				if(!returningProjects.contains(projectCreated)) {
 					returningProjects.add(projectCreated);
@@ -353,11 +353,11 @@ public class Logger implements IStore {
 				
 			}else if(recordAttrib.length == 7) {
 				// It's a Manager
-				List<Project> projects = restoreProject();
-				List<Project> managerProj = new ArrayList<Project>();
+				List<InternProject> projects = restoreProject();
+				List<InternProject> managerProj = new ArrayList<InternProject>();
 				String[] projectIds = recordAttrib[5].split(",");
 				List<String> convertedProjects = Arrays.asList(projectIds);
-				for(Project prj: projects) {
+				for(InternProject prj: projects) {
 					
 					if(convertedProjects.contains(prj.getProjectID()) && 
 							!managerProj.contains(prj)) {

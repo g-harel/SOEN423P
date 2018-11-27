@@ -1,7 +1,7 @@
 package shared;
 
 import model.Location;
-import model.Project;
+import model.InternProject;
 import storage.IStore;
 
 public interface IHRActions {
@@ -25,7 +25,7 @@ public interface IHRActions {
 	 *	was successful or not and both the server
 	 */
 	 public String createMRecord (String firstName, String lastName, String employeeID, 
-			 String mailID, Project[] projects, 
+			 String mailID, InternProject[] projects, 
 			 Location location, String authorOfRequest);
 		/**
 		 * When a manager invokes this method from a ManagerClient, the server associated with
