@@ -46,3 +46,6 @@ hs_err_pid*
 /Sequencer/nbproject/private/
 /Sequencer/build/
 /Sequencer/dist/
+ReplicaS3/dist/
+
+ReplicaS3/nbproject/private/
