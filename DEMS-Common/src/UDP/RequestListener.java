@@ -177,8 +177,10 @@ public class RequestListener implements Runnable {
     }
 
     private Message processRequest(Message request) {
-        if (request.getLocation() != RegisteredReplica.EVERYONE
-                || request.getLocation() != m_InstanceId) {
+        boolean isLocationImportant = (m_InstanceId != RegisteredReplica.EVERYONE);
+        boolean isForSomeone = (request.getLocation() != RegisteredReplica.EVERYONE);
+        boolean isForNotMe = (request.getLocation() != m_InstanceId);
+        if (isLocationImportant && isForSomeone && isForNotMe) {
             System.out.println("Dropping request for [ " + request.getLocation().toString() + " ]");
             return null;
         }

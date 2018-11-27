@@ -108,6 +108,14 @@ public class SocketTest implements RequestListener.Processor {
 
     @Test
     public void testSendWithLocation() throws Exception {
+        m_Listener.Stop();
+        m_ListenerThread.join();
+        
+        m_Listener = new RequestListener(this, TEST_ADDR, RegisteredReplica.ReplicaS1);
+        m_ListenerThread = new Thread(m_Listener);
+        m_ListenerThread.start();
+        m_Listener.Wait();        
+        
         Message send = new Message(OperationCode.GET_RECORD_COUNT, 456874, "LOCATION", TEST_ADDR);
         send.setLocation(RegisteredReplica.ReplicaS1);
 
