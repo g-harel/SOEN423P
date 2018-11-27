@@ -28,13 +28,11 @@ import Models.RegisteredReplica;
 import UDP.Message;
 import UDP.OperationCode;
 import UDP.RequestListener;
-import UDP.Socket;
 import Utility.ReplicaResponse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.SocketException;
-import java.util.List;
 
 /**
  *
@@ -42,16 +40,12 @@ import java.util.List;
  */
 public class Listener implements RequestListener.Processor {
 
-    final private ConsensusTracker m_ConsensusTracker;
     final private RequestListener m_Listener;
+    private ConsensusTracker m_ConsensusTracker;
     private Thread m_ListenerThread;
-    final private Socket m_Socket;
-
 
     public Listener() throws SocketException {
         m_Listener = new RequestListener(this, AddressBook.FRONTEND);
-        m_ConsensusTracker = new ConsensusTracker(3);
-        m_Socket = new Socket();
     }
 
     public void launch() {
@@ -87,33 +81,18 @@ public class Listener implements RequestListener.Processor {
             String answer = replicaResponse.getResponse();
             RegisteredReplica replicaID = replicaResponse.getReplicaID();
 
-            RequestConsensus requestConsensus = m_ConsensusTracker.getRequestConsensus(sequenceID);
-
-            if (requestConsensus == null) {
-                requestConsensus = new RequestConsensus(answer, replicaID);
-                m_ConsensusTracker.addRequestConsensus(sequenceID, requestConsensus);
-            } else {
-                requestConsensus.addAnswer(answer, replicaID);
-
-                if (requestConsensus.shouldSendConsensus()) {
-                    List<RegisteredReplica> softwareFailures = requestConsensus.getSoftwareFailures();
-
-                    if (softwareFailures.size() > 0) {
-                        for (RegisteredReplica replica : softwareFailures) {
-                            
-                            Message messageToSend = new Message(OperationCode.ACK_FAULY_RESP_NOTIFICATION, 0, replicaID.toString(), AddressBook.MANAGER);
-                            m_Socket.send(messageToSend, 5, 1000);
-                        }
-                    }
-
-                    return requestConsensus.getConsensusAnswer();
-                }
+            if (m_ConsensusTracker != null) {
+                m_ConsensusTracker.addRequestConsensus(replicaID, sequenceID, answer);
             }
-        } else {
-            throw new IOException("The response received is not valid.\n"
-                    + "Responses need to hava the OperationCode `" + OperationCode.OPERATION_RETVAL + "` and "
-                    + "a serialized ReplicaResponse object as data.");
         }
-        return null;
+        return "";
+    }
+
+    /**
+     *
+     * @param tracker
+     */
+    public void setTracker(ConsensusTracker tracker) {
+        m_ConsensusTracker = tracker;
     }
 }
