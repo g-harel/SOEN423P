@@ -71,7 +71,7 @@ public class FrontEnd extends IFrontEndPOA {
         request.addRequestDataEntry("location", location);
 
         try {
-            sendRequestToSequencer(request);
+            sendRequestToSequencer(OperationCode.CREATE_MANAGER_RECORD, request);
         } catch (Exception ex) {
             return ex.getMessage();
         }
@@ -107,7 +107,7 @@ public class FrontEnd extends IFrontEndPOA {
         request.addRequestDataEntry("projectID", projectID);
 
         try {
-            sendRequestToSequencer(request);
+            sendRequestToSequencer(OperationCode.CREATE_EMPLOYEE_RECORD, request);
         } catch (Exception ex) {
             return ex.getMessage();
         }
@@ -136,7 +136,7 @@ public class FrontEnd extends IFrontEndPOA {
         request.addRequestDataEntry("newValue", newValue);
 
         try {
-            sendRequestToSequencer(request);
+            sendRequestToSequencer(OperationCode.EDIT_RECORD, request);
         } catch (Exception ex) {
             return ex.getMessage();
         }
@@ -153,7 +153,7 @@ public class FrontEnd extends IFrontEndPOA {
         request.addRequestDataEntry("location", location);
 
         try {
-            sendRequestToSequencer(request);
+            sendRequestToSequencer(OperationCode.TRANSFER_RECORD, request);
         } catch (Exception ex) {
             return ex.getMessage();
         }
@@ -178,7 +178,7 @@ public class FrontEnd extends IFrontEndPOA {
         return new ClientRequest(methodName, location);
     }
 
-    private void sendRequestToSequencer(ClientRequest clientRequest) throws Exception {
+    private void sendRequestToSequencer(OperationCode method, ClientRequest clientRequest) throws Exception {
         ByteArrayOutputStream bStream = new ByteArrayOutputStream();
         ObjectOutput oo = new ObjectOutputStream(bStream);
         oo.writeObject(clientRequest);
@@ -189,7 +189,7 @@ public class FrontEnd extends IFrontEndPOA {
 
         Message messageToSend = null;
         try {
-            messageToSend = new Message(OperationCode.SERIALIZE, 0, payload, AddressBook.SEQUENCER);
+            messageToSend = new Message(method, 0, payload, AddressBook.SEQUENCER);
         } catch (Exception ex) {
             System.out.println("Message was too big!");
         }

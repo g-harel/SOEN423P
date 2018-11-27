@@ -45,6 +45,8 @@ public enum OperationCode {
     ACK_DOES_RECORD_EXIST(3003),
     TRANSFER_RECORD(1004),
     ACK_TRANSFER_RECORD(3004),
+    EDIT_RECORD(1006),
+    ACK_EDIT_RECORD(3006),
 
     // For PI-FE
     OPERATION_RETVAL(1025),
@@ -81,7 +83,8 @@ public enum OperationCode {
                 case GET_RECORD_COUNT: return ACK_GET_RECORD_COUNT;
                 case DOES_RECORD_EXIST: return ACK_DOES_RECORD_EXIST;
                 case TRANSFER_RECORD: return ACK_TRANSFER_RECORD;
-
+                case EDIT_RECORD: return ACK_EDIT_RECORD;
+                
                 case OPERATION_RETVAL: return ACK_OPERATION_RETVAL;
 
                 case NO_RESP_NOTIFICATION: return ACK_NO_RESP_NOTIFICATION;
