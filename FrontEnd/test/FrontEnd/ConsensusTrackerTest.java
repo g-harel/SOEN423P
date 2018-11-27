@@ -21,7 +21,6 @@ public class ConsensusTrackerTest {
      */
     @Test
     public void testAddRequestConsensus() {
-        System.out.println("addRequestConsensus");
         int sequenceID = 5;
         String answer = "ABC";
 
@@ -38,7 +37,6 @@ public class ConsensusTrackerTest {
 
     @Test
     public void testFailureDectection() {
-        System.out.println("addRequestConsensus");
         int sequenceID = 5;
         String answer = "ABC";
 
@@ -57,4 +55,27 @@ public class ConsensusTrackerTest {
         assertEquals("Agree Answer should be constant", answer, instance.getAnswer());
         assertEquals("Should report S1 as in error", RegisteredReplica.ReplicaS1, instance.getFailures().getFirst());
     }
+
+    @Test
+    public void testMissingResponse() {
+        int sequenceID = 5;
+        String answer = "ABC";
+
+        for (RegisteredReplica replica : RegisteredReplica.values()) {
+            if (replica == RegisteredReplica.EVERYONE) {
+                continue;
+            }
+
+            if (replica == RegisteredReplica.ReplicaS1) {
+                continue;
+            } else {
+                instance.addRequestConsensus(replica, sequenceID, answer);
+            }
+        }
+
+        assertEquals("Agree Answer should be constant", answer, instance.getAnswer());
+        assertFalse("Should NOT report S1 answeree", instance.getAnswerees().contains(RegisteredReplica.ReplicaS1));
+        assertTrue("Should NOT report S1 answeree", instance.getMissingAnswers().contains(RegisteredReplica.ReplicaS1));
+    }
+
 }

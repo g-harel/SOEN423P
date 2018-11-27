@@ -95,4 +95,36 @@ public class ConsensusTracker {
     public LinkedList<RegisteredReplica> getFailures() {
         return inError;
     }
+
+    public LinkedList<RegisteredReplica> getAnswerees() {
+        LinkedList<RegisteredReplica> respondents = new LinkedList<>();
+
+        for (RegisteredReplica suspect : RegisteredReplica.values()) {
+            if (suspect == RegisteredReplica.EVERYONE) {
+                continue;
+            }
+
+            if (answers.containsKey(suspect)) {
+                respondents.add(suspect);
+            }
+        }
+
+        return respondents;
+    }
+
+    public LinkedList<RegisteredReplica> getMissingAnswers() {
+        LinkedList<RegisteredReplica> missing = new LinkedList<>();
+
+        for (RegisteredReplica suspect : RegisteredReplica.values()) {
+            if (suspect == RegisteredReplica.EVERYONE) {
+                continue;
+            }
+
+            if (!answers.containsKey(suspect)) {
+                missing.add(suspect);
+            }
+        }
+
+        return missing;
+    }
 }
