@@ -64,7 +64,7 @@ public class SequencerTest implements RequestListener.Processor {
 
     @Before
     public void setUp() {
-    	m_ListOfMessages = new ArrayList<Message>();
+    	m_ListOfMessages = new ArrayList<>();
         m_Listener = new RequestListener(this, TEST_ADDR);
         m_ListenerThread = new Thread(m_Listener);
         m_ListenerThread.start();
@@ -76,13 +76,30 @@ public class SequencerTest implements RequestListener.Processor {
         m_Listener.Stop();
         m_ListenerThread.join();
     }
+    
+    @Test
+    public void testMockReplica() throws Exception {
+        Socket socket = new Socket();
+        Message msg = new Message(OperationCode.TRANSFER_RECORD, 1, "TESTING ABC", AddressBook.REPLICAS);
+        
+        assertTrue("Seq should ACK request", socket.send(msg, 10, 1000));
+        
+        assertEquals(1, m_ListOfMessages.size());
+
+        for (Message rx : m_ListOfMessages) {
+            assertEquals(rx.getOpCode(), msg.getOpCode());
+            assertEquals(rx.getData(), "TESTING ABC");
+            assertEquals(rx.getSeqNum(), 1);
+        }
+        
+    }
 
     @Test
     public void testSequencer() throws Exception {
         Socket frontendMock = new Socket();
         Message forward = new Message(OperationCode.TRANSFER_RECORD, 0, "TESTING ABC", AddressBook.SEQUENCER);
 
-        assertTrue("Seq should ACK request", frontendMock.send(forward, 10, 1000));
+        assertTrue("Seq should ACK request", frontendMock.send(forward, 100, 10000));
 
         Message response = frontendMock.getResponse();
 
@@ -140,11 +157,6 @@ public class SequencerTest implements RequestListener.Processor {
 
     @Override
     public String handleRequestMessage(Message msg) throws Exception {
-        int randomNum = ThreadLocalRandom.current().nextInt(0, 3);
-        if (randomNum == 0) {
-            throw new Exception("Dummy Error");
-        }
-
         this.m_ListOfMessages.add(msg);
         return "RETVAL";
     }

@@ -142,6 +142,7 @@ public class RequestListener implements Runnable {
             }
 
             try {
+                System.out.println("Replying... " + response);
                 m_Socket.send(response.getPacket());
             } catch (IOException ex) {
                 System.out.println("Failed to send message: " + ex.getMessage());

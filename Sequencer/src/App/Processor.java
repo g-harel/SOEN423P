@@ -12,9 +12,11 @@ import UDP.RequestListener;
 import UDP.Socket;
 
 public class Processor implements RequestListener.Processor {
-    private int sequence = 0;
-    private ArrayList<Message> history = new ArrayList<Message>();
 
+    private int sequence = 0;
+    private ArrayList<Message> history = new ArrayList<>();
+
+    @Override
     public String handleRequestMessage(Message msg) throws Exception {
         if (msg.getOpCode() == OperationCode.REPLAY) {
             // Extract target replica from request.
@@ -39,16 +41,16 @@ public class Processor implements RequestListener.Processor {
         }
 
         // Create a forwarded message with an assigned sequence number.
-        Message fwd = new Message(msg.getOpCode(), this.sequence++, msg.getData(), AddressBook.REPLICAS);
+        Message fwd = new Message(msg.getOpCode(), 15634, msg.getData(), AddressBook.REPLICAS);
 
         // Store message for future replays.
         this.history.add(fwd);
 
         // Send forwarded message to the replicas.
-
-
         Socket socket = new Socket();
-        socket.send(msg, 5, 200);
+        if( ! socket.send(msg, 5, 750)){
+            return "ERROR";
+        }
 
         // Sequence number is given back to the frontend.
         return "SEQ=" + this.sequence;
