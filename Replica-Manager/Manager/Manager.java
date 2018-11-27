@@ -71,8 +71,12 @@ public class Manager {
 			Message sendMessa = new Message(
 					OperationCode.RESTORE_ORDER_NOTIFICATION,
 					seqId,
-					"targetReplica: " + this.getAssociatedReplicaName() + "order: restore from log" + ", log: blabla",
+					"targetReplica: " + this.getAssociatedReplicaName() + "order: restore from log from RM",
 					AddressBook.SEQUENCER);
+			// Set the Replica in message
+			sendMessa.setLocation(associatedReplica);
+			
+			
 			
 			if(!instance.send(sendMessa, 10, 1000)) {
 				throw new Exception("Failed to send Restore Order to Replica");
@@ -103,6 +107,8 @@ public class Manager {
 					seqId,
 					"targetReplica: " + this.getAssociatedReplicaName() + "order: restart replica",
 					AddressBook.REPLICAS);
+				// Set the Replica in message
+				sendMessa.setLocation(associatedReplica);
 			
 			if(!instance.send(sendMessa, 10, 1000)) {
 				throw new Exception("Failed to send Restore Order to Replica");
