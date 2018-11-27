@@ -239,7 +239,7 @@ public class FrontEnd extends IFrontEndPOA {
 
         Message notice = null;
         try {
-            notice = new Message(OperationCode.ACK_NO_RESP_NOTIFICATION, 0, "Your replica Errored!", AddressBook.MANAGER);
+            notice = new Message(OperationCode.NO_RESP_NOTIFICATION, 0, "Your replica Errored!", AddressBook.MANAGER);
         } catch (Exception ex) {
             // This is impossible
         }
