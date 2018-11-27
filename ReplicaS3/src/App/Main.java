@@ -23,14 +23,25 @@
  */
 package App;
 
+import Models.Location;
+
 /**
  *
  * @author cmcarthur
  */
 public class Main {
     
-    public static void main(String[] args){
+    public static void main(String[] args) throws Exception{
         
+        ReplicaS3 center = new ReplicaS3();
+        
+		for (Location loc: Location.values()) {
+			CenterServer s = new CenterServer(loc.getPrefix());
+			Thread t = new Thread(s);
+			t.start();
+
+			center.put(loc.getPrefix(), s);
+		}
     }
     
 }

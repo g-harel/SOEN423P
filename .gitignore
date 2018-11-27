@@ -49,3 +49,5 @@ hs_err_pid*
 ReplicaS3/dist/
 
 ReplicaS3/nbproject/private/
+
+ReplicaS3/build/

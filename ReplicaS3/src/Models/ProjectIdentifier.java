@@ -31,11 +31,7 @@ import java.io.Serializable;
  */
 public class ProjectIdentifier implements Serializable {
 
-    public ProjectIdentifier(int uuid) throws Exception {
-        if (uuid > 99999) {
-            throw new Exception("Invalid ID!");
-        }
-
+    public ProjectIdentifier(int uuid) {
         m_Id =  uuid;
     }
 

@@ -35,7 +35,8 @@ public class ReplicaS3 extends AbstractReplica {
     public ReplicaS3() {
         super(RegisteredReplica.ReplicaS3);
     }
-    
-    
-    
+
+    void put(String prefix, CenterServer s) {
+        centerServers.put(prefix, s);
+    }
 }
