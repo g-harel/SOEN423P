@@ -68,6 +68,7 @@ import org.omg.PortableServer.POAPackage.WrongPolicy;
 public class FrontEnd extends IFrontEndPOA {
     
     final private Socket socket;
+    private int requiredAnswersForAgreement;
     static Listener m_RequestListener;
 
     /**
@@ -121,6 +122,7 @@ public class FrontEnd extends IFrontEndPOA {
     
     public FrontEnd() throws SocketException {
         this.socket = new Socket();
+        requiredAnswersForAgreement = 3;
     }
     
     @Override
@@ -143,7 +145,7 @@ public class FrontEnd extends IFrontEndPOA {
         
         int seqNumber = Integer.valueOf(socket.getResponse().getData().substring("SEQ=".length()));
         
-        ConsensusTracker tracker = new ConsensusTracker(3, seqNumber);
+        ConsensusTracker tracker = new ConsensusTracker(requiredAnswersForAgreement, seqNumber);
         
         m_RequestListener.setTracker(tracker);
         
@@ -228,24 +230,12 @@ public class FrontEnd extends IFrontEndPOA {
     
     @Override
     public void softwareFailure(String managerID) {
-        ClientRequest request = setupClientRequest(managerID);
-        try {
-            sendRequestToSequencer(request);
-        } catch (Exception ex) {
-            Logger.getLogger(FrontEnd.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        requiredAnswersForAgreement--;
     }
     
     @Override
     public void replicaCrash(String managerID) {
-        //m_ConsensusTracker.decrementConsensusCountNeeded();
-
-        ClientRequest request = setupClientRequest(managerID);
-        try {
-            sendRequestToSequencer(request);
-        } catch (Exception ex) {
-            Logger.getLogger(FrontEnd.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        requiredAnswersForAgreement--;
     }
     
     private ClientRequest setupClientRequest(String managerID) {
