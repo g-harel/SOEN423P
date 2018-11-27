@@ -15,7 +15,7 @@ class LocationEntry {
 }
 
 public class AddressBook {
-	private static int basePort = 3331;
+	private static int basePort = 33152;
 
 	private static LocationEntry[] all = new LocationEntry[] {
 		new LocationEntry("CA", AddressBook.basePort, 0),
