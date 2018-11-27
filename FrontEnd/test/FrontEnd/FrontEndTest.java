@@ -23,7 +23,6 @@
  */
 package FrontEnd;
 
-import FrontEnd.FrontEnd;
 import Interface.Corba.Project;
 import Models.AddressBook;
 import Models.Location;
