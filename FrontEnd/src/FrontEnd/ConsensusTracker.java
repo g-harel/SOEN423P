@@ -6,22 +6,24 @@ import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
 
 public class ConsensusTracker {
+   
 
-    final private HashMap<RegisteredReplica, String> answers = new HashMap<>();
+    final private HashMap<RegisteredReplica, String> answers;
     final private int sequenceNumber;
     final private Semaphore complete;
 
     final private LinkedList<RegisteredReplica> inError = new LinkedList<>();
-    private RegisteredReplica currentAswer;
+    private String currentAswer;
 
     public ConsensusTracker(int consensusCountNeeded, int sequenceID) {
+        this.answers = new HashMap<>();
         complete = new Semaphore(consensusCountNeeded);
         sequenceNumber = sequenceID;
     }
 
     public void addRequestConsensus(RegisteredReplica replica, int sequenceID, String answer) {
         if (answers.isEmpty()) {
-            currentAswer = replica; // save the current answer
+            currentAswer = answer; // save the current answer
         }
 
         if (sequenceNumber == sequenceID && !answers.containsKey(replica)) {
@@ -29,6 +31,36 @@ public class ConsensusTracker {
             complete.release();
         } else {
             inError.add(replica); // bad seq or duplicate =?
+        }
+
+        int index = 0;
+        int counter[] = new int[answers.size()];
+        for (String potential : answers.values()) {
+            for (String suspect : answers.values()) {
+                if (potential.equals(suspect)) {
+                    counter[index] += 1;
+                }
+            }
+            index++;
+        }
+        
+        int max = 0;
+        for( int i = 0; i < answers.size(); i++){
+            if( max < counter[i]){
+                max = counter[i];
+            }
+        }
+        
+        int ticker = 0;
+        for (String potential : answers.values()) {
+            if( max == counter[ticker]){
+                
+                currentAswer = potential;
+                break;
+            }
+            
+            ticker++;
+            
         }
 
     }
