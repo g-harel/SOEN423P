@@ -76,7 +76,7 @@ public class Socket {
 
         try {
             Message hopefulAck = receiveRaw(timeout);
-            System.out.println(hopefulAck);
+            System.out.println("Obtained the following response: " + hopefulAck);
 
             if (hopefulAck.getOpCode() != msg.getOpCode().toAck()) {
                 throw new Exception("RUDP: Rx a message but wasnt the correct ACK OpCode");
