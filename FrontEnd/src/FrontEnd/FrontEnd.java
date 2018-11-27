@@ -162,6 +162,7 @@ public class FrontEnd extends IFrontEndPOA {
         ObjectOutput oo = new ObjectOutputStream(bStream);
         oo.writeObject(clientRequest);
         oo.close();
+        oo.flush();
 
         byte[] serializedClientRequest = bStream.toByteArray();
         String payload = new String(serializedClientRequest);
