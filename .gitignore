@@ -51,3 +51,6 @@ ReplicaS3/dist/
 ReplicaS3/nbproject/private/
 
 ReplicaS3/build/
+/Replica-Manager/nbproject/private/
+/Replica-Manager/build/
+/Replica-Manager/dist/
