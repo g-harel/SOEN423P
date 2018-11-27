@@ -128,8 +128,12 @@ public class CenterServer implements ICenterServer, Runnable {
     	}
 	}
 	
-	private InternProject[] convertProjectToInternalProject(Project projects) {
-		return null;
+	private InternProject[] convertProjectToInternalProject(Project project) {
+
+		InternProject proj = new InternProject(project.projectId, project.clientName, project.projectName);
+		InternProject[] projs  = {proj};
+		return projs;
+		
 	}
 	
 	private model.Location convertToInternalLocation(String location){
