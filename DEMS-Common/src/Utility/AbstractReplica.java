@@ -54,7 +54,7 @@ public abstract class AbstractReplica {
 	 	 */
 		@Override
 		public String handleRequestMessage(Message msg) throws Exception {
-			if (msg.getOpCode() == OperationCode.SERIALIZE && msg.getData().contains("ClientRequest")) {
+			if (msg.getData().contains("ClientRequest")) {
 				
 				int sequenceID = msg.getSeqNum();
 				
@@ -66,8 +66,7 @@ public abstract class AbstractReplica {
             }
             else {
             	throw new IOException("The request received (" + msg.getSeqNum() + ") is not valid.\n" + 
-            							"Requests need to hava the OperationCode `" + OperationCode.SERIALIZE + "` and " +
-            							"a serialized ClientRequest object as data.");
+            							"Requests need to have a serialized ClientRequest object as data.");
             }
 			
 			return null;
