@@ -154,7 +154,12 @@ public class RequestListener implements Runnable {
 
     private void createSocket() {
         try {
-            m_Socket = new MulticastSocket(m_Address.getPort());
+            if( m_Address != AddressBook.REPLICAS){
+                m_Socket = new MulticastSocket(m_Address.getPort());
+            } else {
+                m_Socket = new MulticastSocket();
+            }
+            
             m_Socket.joinGroup(m_Address.getAddr());
             m_ShouldContinueWorking = true;
         } catch (IOException ex) {
