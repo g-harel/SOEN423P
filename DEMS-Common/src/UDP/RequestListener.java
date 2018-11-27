@@ -27,6 +27,7 @@ import Models.AddressBook;
 import Models.RegisteredReplica;
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.net.MulticastSocket;
 
 /**
@@ -182,7 +183,7 @@ public class RequestListener implements Runnable {
             return null;
         }
 
-        System.out.println("Processing new request..." + request);
+        System.out.println("Processing new request...");
         String responsePayload;
         OperationCode responseCode = request.getOpCode().toAck();
 
@@ -194,6 +195,8 @@ public class RequestListener implements Runnable {
             responsePayload = ex.getMessage();
         }
 
-        return new Message(responseCode, request.getSeqNum(), request.getLocation(), responsePayload, request.getDest());
+        InetAddress address = request.getAddress();
+        int port = request.getPort();
+        return new Message(responseCode, request.getSeqNum(), request.getLocation(), responsePayload, address, port);
     }
 }

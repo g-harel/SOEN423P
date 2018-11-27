@@ -31,10 +31,10 @@ import java.net.UnknownHostException;
  * @author cmcarthur
  */
 public enum AddressBook {
-    FRONTEND("FRONTEND", "FE", "239.101.10.10", 13547),
-    SEQUENCER("SEQUENCER", "SEQ", "239.101.20.20", 45794),
-    MANAGER("MANAGER", "RM", "239.101.30.30", 25897),
-    REPLICAS("REPLICAS", "PI", "239.101.40.40", 34268);
+    FRONTEND("DEMS-Front-End", "FE", "239.101.10.10", 13547),
+    SEQUENCER("DEMS-Sequencer", "SEQ", "239.101.20.20", 45794),
+    MANAGER("DEMS-Replica-Manager", "RM", "239.101.30.30", 25897),
+    REPLICAS("DEMS-Replica-Instance", "PI", "239.101.40.40", 34268);
 
     private AddressBook(String name, String shortHand, String addr, int port) {
         m_Name = name;
