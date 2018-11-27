@@ -34,6 +34,7 @@ public class ReplicaS3 extends AbstractReplica {
     
     public ReplicaS3() {
         super(RegisteredReplica.ReplicaS3);
+        super.Launch();
     }
 
     void put(String prefix, CenterServer s) {

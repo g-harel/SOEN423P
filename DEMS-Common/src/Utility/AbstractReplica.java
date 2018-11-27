@@ -7,78 +7,67 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
-import java.util.Map.Entry;
 
 import Interface.Corba.Project;
 import Models.AddressBook;
 import Models.RegisteredReplica;
 import UDP.Message;
 import UDP.OperationCode;
-import UDP.RequestListener;
 import UDP.Socket;
-import UDP.RequestListener.Processor;
+import UDP.RequestListener;
 
-public abstract class AbstractReplica {
+public abstract class AbstractReplica implements RequestListener.Processor {
 
     protected RegisteredReplica replicaID;
     protected static HashMap<String, ICenterServer> centerServers = new HashMap<>();
     protected HashMap<Integer, Message> messagesQueue = new HashMap<>();
     protected int nextSequenceID = 0;
-    protected ReplicaListerner listener;
 
-    protected class ReplicaListerner implements Processor {
+    final private RequestListener m_Listener;
+    private Thread m_ListenerThread;
 
-        final private RequestListener m_Listener;
-        private Thread m_ListenerThread;
+    public void Launch() {
+        m_ListenerThread = new Thread(m_Listener);
+        m_ListenerThread.start();
+        m_Listener.Wait(); // Make sure it's running before getting any farther ( optional )
+        System.out.println("Utility.AbstractReplica.ReplicaListerner.launch()");
+    }
 
-        public ReplicaListerner(RegisteredReplica replicaID) {
-            System.out.println("Utility.AbstractReplica.ReplicaListerner.<init>()");
-            m_Listener = new RequestListener(this, AddressBook.REPLICAS, replicaID);
+    public void shutdown() {
+        m_Listener.Stop();
+
+        try {
+            m_ListenerThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+    }
 
-        public void launch() {
-            m_ListenerThread = new Thread(m_Listener);
-            m_ListenerThread.start();
-            m_Listener.Wait(); // Make sure it's running before getting any farther ( optional )
-            System.out.println("Utility.AbstractReplica.ReplicaListerner.launch()");
-        }
+    @Override
+    public String handleRequestMessage(Message msg) throws Exception {
+        System.out.println("Utility.AbstractReplica.ReplicaListerner.handleRequestMessage()");
 
-        public void shutdown() {
-            m_Listener.Stop();
+        if (msg.getData().contains("ClientRequest")) {
 
-            try {
-                m_ListenerThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            int sequenceID = msg.getSeqNum();
+
+            // If the sequenceID is new. It's greater or equal to the expected sequenceID
+            if (sequenceID >= nextSequenceID) {
+                messagesQueue.put(sequenceID, msg);
+                processMessagesQueue();
+            } else {
+                throw new IOException("The request received (" + msg.getSeqNum() + ") is not valid.\n"
+                        + "Requests need to have a serialized ClientRequest object as data.");
             }
+
         }
-
-        @Override
-        public String handleRequestMessage(Message msg) throws Exception {
-            System.out.println("Utility.AbstractReplica.ReplicaListerner.handleRequestMessage()");
-
-            if (msg.getData().contains("ClientRequest")) {
-
-                int sequenceID = msg.getSeqNum();
-
-                // If the sequenceID is new. It's greater or equal to the expected sequenceID
-                if (sequenceID >= nextSequenceID) {
-                    messagesQueue.put(sequenceID, msg);
-                    processMessagesQueue();
-                } else {
-                    throw new IOException("The request received (" + msg.getSeqNum() + ") is not valid.\n"
-                            + "Requests need to have a serialized ClientRequest object as data.");
-                }
-
-            }
-            return "MR10001";
-        }
+        return "MR10001";
     }
 
     public AbstractReplica(RegisteredReplica replicaID) {
         this.replicaID = replicaID;
-        listener = new ReplicaListerner(replicaID);
-        listener.launch();
+        System.out.println("Utility.AbstractReplica.ReplicaListerner.<init>()");
+        m_Listener = new RequestListener(this, AddressBook.REPLICAS, replicaID);
     }
 
     protected ReplicaResponse processRequest(Message message) {

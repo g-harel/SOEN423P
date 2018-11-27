@@ -154,11 +154,12 @@ public class RequestListener implements Runnable {
 
     private void createSocket() {
         try {
-            if( m_Address != AddressBook.REPLICAS){
-                m_Socket = new MulticastSocket(m_Address.getPort());
-            } else {
-                m_Socket = new MulticastSocket();
-            }
+                            m_Socket = new MulticastSocket(m_Address.getPort());
+
+            //if( m_Address != AddressBook.REPLICAS){
+            //} else {
+              //  m_Socket = new MulticastSocket();
+            //}
             
             m_Socket.joinGroup(m_Address.getAddr());
             m_ShouldContinueWorking = true;
@@ -173,6 +174,7 @@ public class RequestListener implements Runnable {
         DatagramPacket packet = new DatagramPacket(buf, buf.length);
         try {
             m_Socket.receive(packet);
+            System.out.println("UDP.RequestListener.waitForIncommingMessage()");
         } catch (IOException ex) {
             System.out.println("Failed to receive message due to: " + ex.getMessage());
             return null;
