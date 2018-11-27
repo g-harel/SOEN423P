@@ -36,6 +36,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import App.Sequencer;
+import java.net.SocketException;
 
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -57,7 +58,7 @@ public class SequencerTest implements RequestListener.Processor {
     }
 
     @BeforeClass
-    static public void setup() {
+    static public void setup() throws SocketException {
         // TODO While most likely have to be a separate thread !
         Sequencer.main(null); // Run the whole sequencer application
     }

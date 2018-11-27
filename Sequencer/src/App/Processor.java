@@ -10,11 +10,25 @@ import UDP.Message;
 import UDP.OperationCode;
 import UDP.RequestListener;
 import UDP.Socket;
+import java.net.SocketException;
+import java.util.PriorityQueue;
+import java.util.concurrent.Semaphore;
 
-public class Processor implements RequestListener.Processor {
+public class Processor implements RequestListener.Processor, Runnable {
+
+    boolean running = true;
+    Socket socket;
+    final PriorityQueue<Message> queue;
+    final Semaphore sem;
 
     private int sequence = 0;
     private ArrayList<Message> history = new ArrayList<>();
+
+    public Processor() throws SocketException {
+        this.socket = new Socket();
+        queue = new PriorityQueue<>();
+        sem = new Semaphore(1000);
+    }
 
     @Override
     public String handleRequestMessage(Message msg) throws Exception {
@@ -41,18 +55,44 @@ public class Processor implements RequestListener.Processor {
         }
 
         // Create a forwarded message with an assigned sequence number.
-        Message fwd = new Message(msg.getOpCode(), 15634, msg.getData(), AddressBook.REPLICAS);
+        Message fwd = new Message(msg.getOpCode(), ++this.sequence, msg.getData(), AddressBook.REPLICAS);
 
         // Store message for future replays.
         this.history.add(fwd);
 
-        // Send forwarded message to the replicas.
-        Socket socket = new Socket();
-        if( ! socket.send(msg, 5, 750)){
-            return "ERROR";
+        synchronized (queue) {
+            queue.add(fwd);
         }
+
+        sem.release();
 
         // Sequence number is given back to the frontend.
         return "SEQ=" + this.sequence;
+    }
+
+    @Override
+    public void run() {
+        while (running) {
+            try {
+                sem.acquire();
+            } catch (InterruptedException ex) {
+                System.out.println(ex);
+                break; // oh oh!
+            }
+
+            synchronized (queue) {
+                try {
+                    if (!socket.send(queue.remove(), 5, 750)) {
+                        throw new Exception();
+                    }
+                } catch (Exception ex) {
+                    System.out.println("Unable to use socket to send " + ex.getMessage());
+                }
+            }
+        }
+    }
+
+    public void Stop() {
+        running = false;
     }
 }

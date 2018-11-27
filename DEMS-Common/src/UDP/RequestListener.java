@@ -190,7 +190,8 @@ public class RequestListener implements Runnable {
         try {
             responsePayload = m_Handler.handleRequestMessage(request);
         } catch (Exception ex) {
-        	responseCode = OperationCode.INVALID;
+            System.out.println("Handler failed to process request!");
+            responseCode = OperationCode.INVALID;
             responsePayload = ex.getMessage();
         }
 
