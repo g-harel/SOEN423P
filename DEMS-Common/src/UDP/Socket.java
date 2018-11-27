@@ -71,10 +71,12 @@ public class Socket {
     @throws error when failing to send ( should not occure )
      */
     public boolean send(Message msg, int retryCounter, int timeout) throws IOException {
+        System.out.println("Sending... " + msg);
         sendRaw(msg); // Dont catch this exception, likely to be the internal socket is bad
 
         try {
             Message hopefulAck = receiveRaw(timeout);
+            System.out.println(hopefulAck);
 
             if (hopefulAck.getOpCode() != msg.getOpCode().toAck()) {
                 throw new Exception("RUDP: Rx a message but wasnt the correct ACK OpCode");

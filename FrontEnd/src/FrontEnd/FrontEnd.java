@@ -71,28 +71,11 @@ public class FrontEnd extends IFrontEndPOA {
         request.addRequestDataEntry("location", location);
 
         try {
-            sendRequestToSequencer(request);
+            sendRequestToSequencer(OperationCode.CREATE_MANAGER_RECORD, request);
         } catch (Exception ex) {
             return ex.getMessage();
         }
-
-        int seqNumber = Integer.valueOf(socket.getResponse().getData().substring("SEQ=".length()));
-
-        ConsensusTracker tracker = new ConsensusTracker(requiredAnswersForAgreement, seqNumber);
-
-        m_RequestListener.setTracker(tracker);
-
-        try {
-            tracker.Wait();
-        } catch (InterruptedException ex) {
-            return "Error: could not obtain answer";
-        }
-
-        m_RequestListener.setTracker(null);
-
-        processesFailures(tracker);
-
-        return tracker.getAnswer();
+        return getResults();
     }
 
     @Override
@@ -107,23 +90,24 @@ public class FrontEnd extends IFrontEndPOA {
         request.addRequestDataEntry("projectID", projectID);
 
         try {
-            sendRequestToSequencer(request);
+            sendRequestToSequencer(OperationCode.CREATE_EMPLOYEE_RECORD, request);
         } catch (Exception ex) {
             return ex.getMessage();
         }
-
-        int seqNumber = Integer.valueOf(socket.getResponse().getData().substring("SEQ=".length()));
-
-        ConsensusTracker m_ConsensusTracker;
-
-        return "ER";
+        return getResults();
     }
 
     @Override
     public String getRecordCounts(String managerID) {
-        Map<Location, Integer> recordCount = new HashMap<>();
+        ClientRequest request = setupClientRequest(managerID);
 
-        return recordCount.toString();
+        try {
+            sendRequestToSequencer(OperationCode.GET_RECORD_COUNT, request);
+        } catch (Exception ex) {
+            return ex.getMessage();
+        }
+        
+        return getResults();
     }
 
     @Override
@@ -136,12 +120,12 @@ public class FrontEnd extends IFrontEndPOA {
         request.addRequestDataEntry("newValue", newValue);
 
         try {
-            sendRequestToSequencer(request);
+            sendRequestToSequencer(OperationCode.EDIT_RECORD, request);
         } catch (Exception ex) {
             return ex.getMessage();
         }
 
-        return socket.getResponse().getData();
+        return getResults();
     }
 
     @Override
@@ -153,12 +137,12 @@ public class FrontEnd extends IFrontEndPOA {
         request.addRequestDataEntry("location", location);
 
         try {
-            sendRequestToSequencer(request);
+            sendRequestToSequencer(OperationCode.TRANSFER_RECORD, request);
         } catch (Exception ex) {
             return ex.getMessage();
         }
 
-        return socket.getResponse().getData();
+        return getResults();
     }
 
     @Override
@@ -178,7 +162,7 @@ public class FrontEnd extends IFrontEndPOA {
         return new ClientRequest(methodName, location);
     }
 
-    private void sendRequestToSequencer(ClientRequest clientRequest) throws Exception {
+    private void sendRequestToSequencer(OperationCode method, ClientRequest clientRequest) throws Exception {
         ByteArrayOutputStream bStream = new ByteArrayOutputStream();
         ObjectOutput oo = new ObjectOutputStream(bStream);
         oo.writeObject(clientRequest);
@@ -189,7 +173,7 @@ public class FrontEnd extends IFrontEndPOA {
 
         Message messageToSend = null;
         try {
-            messageToSend = new Message(OperationCode.SERIALIZE, 0, payload, AddressBook.SEQUENCER);
+            messageToSend = new Message(method, 0, payload, AddressBook.SEQUENCER);
         } catch (Exception ex) {
             System.out.println("Message was too big!");
         }
@@ -200,6 +184,27 @@ public class FrontEnd extends IFrontEndPOA {
             }
         }
     }
+    
+    private String getResults(){
+        int seqNumber = Integer.valueOf(socket.getResponse().getData().substring("SEQ=".length()));
+
+        ConsensusTracker tracker = new ConsensusTracker(requiredAnswersForAgreement, seqNumber);
+
+        m_RequestListener.setTracker(tracker);
+
+        try {
+            tracker.Wait();
+        } catch (InterruptedException ex) {
+            return "Error: could not obtain answer";
+        }
+
+        m_RequestListener.setTracker(null);
+
+        processesFailures(tracker);
+
+        return tracker.getAnswer();
+    }
+    
 
     private void processesFailures(ConsensusTracker tracker) {
         processesFailuresBadResponses(tracker);
