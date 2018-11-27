@@ -121,7 +121,7 @@ public class CenterServer implements ICenterServer, Runnable {
     	HRActions tmpCenter = CenterMap.getByLocationName(currentLoca.toString());
     	String result = tmpCenter.getRecordCounts(managerID);
     	result = result.toLowerCase();
-    	if(result.contains("updated")) {
+    	if(result.contains("ca")) {
     		return new ReplicaResponse(true, result);
     	}else {
     		return new ReplicaResponse(false, result);

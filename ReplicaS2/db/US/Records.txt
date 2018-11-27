@@ -1,3 +1,0 @@
-Record:ER20321|Bob|RTransfer|superTrans@gsam.com|P00002
-Record:MR44551|US5903|Fitch|Mini|superFitch@firm.com|P00002,|US
-Record:MR33232|US3150|Micheal|Scott|DataMike@dunderM.com|P00002,|US
