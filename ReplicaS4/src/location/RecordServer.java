@@ -48,6 +48,10 @@ public class RecordServer extends RecordStore implements Runnable {
 		record.recordID = record.getType() + String.format("%05d", ID);
 		this.write(record);
 	}
+	
+	public void empty() {
+		this.empty();
+	}
 
 	public void kill() {
 		this.running = false;

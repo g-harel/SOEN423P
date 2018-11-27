@@ -66,4 +66,8 @@ public class RecordStore {
 			}
 		}
 	}
+	
+	public synchronized void empty() {
+		this.records.clear();
+	}
 }

@@ -1,5 +1,6 @@
 package s4;
 
+import Interface.Corba.Project;
 import Utility.ICenterServer;
 import Utility.ReplicaResponse;
 import location.AddressBook;
@@ -24,39 +25,33 @@ public class CenterServer implements ICenterServer, Runnable {
 	@Override
 	public ReplicaResponse createMRecord(String managerID, String firstName, String lastName, int employeeID,
 			String mailID, Project project, String location) {
-		this.location.createMRecord(managerID, firstName, lastName, employeeID, mailID, project, location);
-		return new ReplicaResponse(true, location);
+		return new ReplicaResponse(true, this.location.createMRecord(managerID, firstName, lastName, employeeID, mailID, project.toString(), location));
 	}
 
 	@Override
 	public ReplicaResponse createERecord(String managerID, String firstName, String lastName, int employeeID,
 			String mailID, String projectID) {
-		// TODO Auto-generated method stub
-		return null;
+		return new ReplicaResponse(true, this.location.createERecord(managerID, firstName, lastName, employeeID, mailID, projectID));
 	}
 
 	@Override
 	public ReplicaResponse getRecordCounts(String managerID) {
-		// TODO Auto-generated method stub
-		return null;
+		return new ReplicaResponse(true, this.location.getRecordCounts(managerID));
 	}
 
 	@Override
 	public ReplicaResponse editRecord(String managerID, String recordID, String fieldName, String newValue) {
-		// TODO Auto-generated method stub
-		return null;
+		return new ReplicaResponse(true, this.location.editRecord(managerID, recordID, fieldName, newValue));
 	}
 
 	@Override
 	public ReplicaResponse transferRecord(String managerID, String recordID, String location) {
-		// TODO Auto-generated method stub
-		return null;
+		return new ReplicaResponse(true, this.location.transferRecord(managerID, recordID, location));
 	}
 
 	@Override
 	public void softwareFailure(String managerID) {
-		// TODO Auto-generated method stub
-		
+		this.server.empty();
 	}
 
 	@Override
