@@ -24,20 +24,23 @@ public abstract class AbstractReplica {
     protected static HashMap<String, ICenterServer> centerServers = new HashMap<>();
     protected HashMap<Integer, Message> messagesQueue = new HashMap<>();
     protected int nextSequenceID = 0;
+    protected ReplicaListerner listener;
 
     protected class ReplicaListerner implements Processor {
 
         final private RequestListener m_Listener;
         private Thread m_ListenerThread;
 
-        public ReplicaListerner() {
-            m_Listener = new RequestListener(this, AddressBook.REPLICAS);
+        public ReplicaListerner(RegisteredReplica replicaID) {
+            System.out.println("Utility.AbstractReplica.ReplicaListerner.<init>()");
+            m_Listener = new RequestListener(this, AddressBook.REPLICAS, replicaID);
         }
 
         public void launch() {
             m_ListenerThread = new Thread(m_Listener);
             m_ListenerThread.start();
-//			m_Listener.Wait(); // Make sure it's running before getting any farther ( optional )
+            m_Listener.Wait(); // Make sure it's running before getting any farther ( optional )
+            System.out.println("Utility.AbstractReplica.ReplicaListerner.launch()");
         }
 
         public void shutdown() {
@@ -50,11 +53,10 @@ public abstract class AbstractReplica {
             }
         }
 
-        /**
-         * Operation Handled: SERIALIZE(1011)
-         */
         @Override
         public String handleRequestMessage(Message msg) throws Exception {
+            System.out.println("Utility.AbstractReplica.ReplicaListerner.handleRequestMessage()");
+
             if (msg.getData().contains("ClientRequest")) {
 
                 int sequenceID = msg.getSeqNum();
@@ -63,18 +65,20 @@ public abstract class AbstractReplica {
                 if (sequenceID >= nextSequenceID) {
                     messagesQueue.put(sequenceID, msg);
                     processMessagesQueue();
+                } else {
+                    throw new IOException("The request received (" + msg.getSeqNum() + ") is not valid.\n"
+                            + "Requests need to have a serialized ClientRequest object as data.");
                 }
-            } else {
-                throw new IOException("The request received (" + msg.getSeqNum() + ") is not valid.\n"
-                        + "Requests need to have a serialized ClientRequest object as data.");
-            }
 
-            return null;
+            }
+            return "MR10001";
         }
     }
 
     public AbstractReplica(RegisteredReplica replicaID) {
         this.replicaID = replicaID;
+        listener = new ReplicaListerner(replicaID);
+        listener.launch();
     }
 
     protected ReplicaResponse processRequest(Message message) {
