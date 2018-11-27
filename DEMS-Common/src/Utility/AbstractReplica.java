@@ -52,9 +52,9 @@ public abstract class AbstractReplica implements RequestListener.Processor {
 
             // If the sequenceID is new. It's greater or equal to the expected sequenceID
             if (sequenceID > nextSequenceID) {
-            ReplicaResponse replicaResponse = processRequest(msg);
-            sendResponseToFrontEnd(replicaResponse, msg.getSeqNum());
-            nextSequenceID = sequenceID;
+                ReplicaResponse replicaResponse = processRequest(msg);
+                sendResponseToFrontEnd(replicaResponse, msg.getSeqNum());
+                nextSequenceID = sequenceID;
             } else {
                 throw new IOException("The request received (" + msg.getSeqNum() + ") is not valid.\n"
                         + "Requests need to have a serialized ClientRequest object as data.");
@@ -71,6 +71,7 @@ public abstract class AbstractReplica implements RequestListener.Processor {
     }
 
     protected ReplicaResponse processRequest(Message message) {
+        System.out.println("Utility.AbstractReplica.processRequest()  " + message);
         ClientRequest clientRequest = null;
         ICenterServer server = null;
 
@@ -151,7 +152,6 @@ public abstract class AbstractReplica implements RequestListener.Processor {
 
         return replicaResponse;
     }
-
 
     private void sendResponseToFrontEnd(ReplicaResponse replicaResponse, int sequenceID) {
         ByteArrayOutputStream bStream = new ByteArrayOutputStream();
