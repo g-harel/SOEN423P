@@ -1,33 +1,47 @@
 package FrontEnd;
 
+import Models.RegisteredReplica;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.concurrent.Semaphore;
 
 public class ConsensusTracker {
-	private HashMap<Integer, RequestConsensus> requests = new HashMap<>();
-	private int consensusCountNeeded;
-	
-	public ConsensusTracker(int consensusCountNeeded) {
-		this.consensusCountNeeded = consensusCountNeeded;
-	}
 
-	public int getConsensusCountNeeded() {
-		return consensusCountNeeded;
-	}
+    final private HashMap<RegisteredReplica, String> answers = new HashMap<>();
+    final private int sequenceNumber;
+    final private Semaphore complete;
 
-	public void setConsensusCountNeeded(int consensusCountNeeded) {
-		this.consensusCountNeeded = consensusCountNeeded;
-	}
-	
-	public void decrementConsensusCountNeeded() {
-		consensusCountNeeded--;
-	}
-	
-	public RequestConsensus getRequestConsensus(int sequenceID) {
-		return requests.get(sequenceID);
-	}
-	
-	public void addRequestConsensus(int sequenceID, RequestConsensus requestConsensus) {
-		requestConsensus.setConsensusCountNeeded(consensusCountNeeded);
-		requests.put(sequenceID, requestConsensus);
-	}
+    final private LinkedList<RegisteredReplica> inError = new LinkedList<>();
+    private RegisteredReplica currentAswer;
+
+    public ConsensusTracker(int consensusCountNeeded, int sequenceID) {
+        complete = new Semaphore(consensusCountNeeded);
+        sequenceNumber = sequenceID;
+    }
+
+    public void addRequestConsensus(RegisteredReplica replica, int sequenceID, String answer) {
+        if (answers.isEmpty()) {
+            currentAswer = replica; // save the current answer
+        }
+
+        if (sequenceNumber == sequenceID && !answers.containsKey(replica)) {
+            answers.put(replica, answer);
+            complete.release();
+        } else {
+            inError.add(replica); // bad seq or duplicate =?
+        }
+
+    }
+
+    /**
+     *
+     * @throws java.lang.InterruptedException
+     */
+    public void Wait() throws InterruptedException {
+        complete.acquire();
+    }
+
+    public boolean contains(RegisteredReplica instance) {
+        return answers.containsKey(instance);
+    }
 }

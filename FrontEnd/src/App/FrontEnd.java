@@ -23,6 +23,7 @@
  */
 package App;
 
+import FrontEnd.ConsensusTracker;
 import FrontEnd.Listener;
 import Models.AddressBook;
 import Models.Location;
@@ -34,13 +35,15 @@ import Interface.Corba.IFrontEnd;
 import Interface.Corba.IFrontEndHelper;
 import Interface.Corba.IFrontEndPOA;
 import Interface.Corba.Project;
+import Models.RegisteredReplica;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.Array;
 import java.net.SocketException;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -65,6 +68,7 @@ import org.omg.PortableServer.POAPackage.WrongPolicy;
 public class FrontEnd extends IFrontEndPOA {
 
     final private Socket socket;
+    static Listener m_RequestListener;
 
     /**
      * @param args the command line arguments
@@ -101,13 +105,13 @@ public class FrontEnd extends IFrontEndPOA {
 
             System.out.println("The Front-end (CORBA) is now running on port 1050 ...");
 
-            Listener requestListener = new Listener();
-            requestListener.launch();
+            m_RequestListener = new Listener();
+            m_RequestListener.launch();
 
             // wait for invocations from clients
             orb.run();
 
-            requestListener.shutdown();
+            m_RequestListener.shutdown();
 
         } catch (InterruptedException | SocketException | InvalidName | CannotProceed | org.omg.CosNaming.NamingContextPackage.InvalidName | NotFound | AdapterInactive | ServantNotActive | WrongPolicy e) {
             System.out.println("Failed to start the Front-End!");
@@ -137,11 +141,27 @@ public class FrontEnd extends IFrontEndPOA {
             return ex.getMessage();
         }
         
-        return socket.getResponse().getData();
+        int seqNumber = Integer.valueOf(socket.getResponse().getData().substring("SEQ=".length()));
+
+        ConsensusTracker tracker = new ConsensusTracker( 3 , seqNumber );
+        
+        m_RequestListener.setTracker(tracker);
+        
+        try {
+            tracker.Wait();
+        } catch (InterruptedException ex) {
+            return "Error: could not obtain answer";
+        }
+        
+        m_RequestListener.setTracker(null);
+        
+        validateIfFailures(tracker);
+
+        return tracker.getAnswer();
     }
 
     @Override
-    public synchronized String createERecord(String managerID, String firstName, String lastName, int employeeID, String mailID, String projectID) {
+    public String createERecord(String managerID, String firstName, String lastName, int employeeID, String mailID, String projectID) {
         ClientRequest request = setupClientRequest(managerID);
 
         request.addRequestDataEntry("managerID", managerID);
@@ -156,8 +176,12 @@ public class FrontEnd extends IFrontEndPOA {
         } catch (Exception ex) {
             return ex.getMessage();
         }
-        
-        return socket.getResponse().getData();
+
+        int seqNumber = Integer.valueOf(socket.getResponse().getData().substring("SEQ=".length()));
+
+        ConsensusTracker m_ConsensusTracker;
+
+        return "ER";
     }
 
     @Override
@@ -181,7 +205,7 @@ public class FrontEnd extends IFrontEndPOA {
         } catch (Exception ex) {
             return ex.getMessage();
         }
-        
+
         return socket.getResponse().getData();
     }
 
@@ -198,7 +222,7 @@ public class FrontEnd extends IFrontEndPOA {
         } catch (Exception ex) {
             return ex.getMessage();
         }
-        
+
         return socket.getResponse().getData();
     }
 
@@ -248,8 +272,22 @@ public class FrontEnd extends IFrontEndPOA {
         }
 
         if (messageToSend != null) {
-            if( ! socket.send(messageToSend, 5, 1000) )
+            if (!socket.send(messageToSend, 5, 1000)) {
                 throw new Exception("Unable to process message within system!");
+            }
         }
+    }
+
+    private void validateIfFailures(ConsensusTracker tracker) {
+        LinkedList<RegisteredReplica> inError = new LinkedList<>();
+        for (RegisteredReplica instance : RegisteredReplica.values() ){
+            if ( ! tracker.contains(instance) ) {
+                inError.add(instance);
+            } else {
+                
+            }
+        }
+        
+        
     }
 }
