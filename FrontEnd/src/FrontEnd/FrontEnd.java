@@ -75,24 +75,7 @@ public class FrontEnd extends IFrontEndPOA {
         } catch (Exception ex) {
             return ex.getMessage();
         }
-
-        int seqNumber = Integer.valueOf(socket.getResponse().getData().substring("SEQ=".length()));
-
-        ConsensusTracker tracker = new ConsensusTracker(requiredAnswersForAgreement, seqNumber);
-
-        m_RequestListener.setTracker(tracker);
-
-        try {
-            tracker.Wait();
-        } catch (InterruptedException ex) {
-            return "Error: could not obtain answer";
-        }
-
-        m_RequestListener.setTracker(null);
-
-        processesFailures(tracker);
-
-        return tracker.getAnswer();
+        return getResults();
     }
 
     @Override
@@ -111,19 +94,20 @@ public class FrontEnd extends IFrontEndPOA {
         } catch (Exception ex) {
             return ex.getMessage();
         }
-
-        int seqNumber = Integer.valueOf(socket.getResponse().getData().substring("SEQ=".length()));
-
-        ConsensusTracker m_ConsensusTracker;
-
-        return "ER";
+        return getResults();
     }
 
     @Override
     public String getRecordCounts(String managerID) {
-        Map<Location, Integer> recordCount = new HashMap<>();
+        ClientRequest request = setupClientRequest(managerID);
 
-        return recordCount.toString();
+        try {
+            sendRequestToSequencer(OperationCode.GET_RECORD_COUNT, request);
+        } catch (Exception ex) {
+            return ex.getMessage();
+        }
+        
+        return getResults();
     }
 
     @Override
@@ -141,7 +125,7 @@ public class FrontEnd extends IFrontEndPOA {
             return ex.getMessage();
         }
 
-        return socket.getResponse().getData();
+        return getResults();
     }
 
     @Override
@@ -158,7 +142,7 @@ public class FrontEnd extends IFrontEndPOA {
             return ex.getMessage();
         }
 
-        return socket.getResponse().getData();
+        return getResults();
     }
 
     @Override
@@ -200,6 +184,27 @@ public class FrontEnd extends IFrontEndPOA {
             }
         }
     }
+    
+    private String getResults(){
+        int seqNumber = Integer.valueOf(socket.getResponse().getData().substring("SEQ=".length()));
+
+        ConsensusTracker tracker = new ConsensusTracker(requiredAnswersForAgreement, seqNumber);
+
+        m_RequestListener.setTracker(tracker);
+
+        try {
+            tracker.Wait();
+        } catch (InterruptedException ex) {
+            return "Error: could not obtain answer";
+        }
+
+        m_RequestListener.setTracker(null);
+
+        processesFailures(tracker);
+
+        return tracker.getAnswer();
+    }
+    
 
     private void processesFailures(ConsensusTracker tracker) {
         processesFailuresBadResponses(tracker);
