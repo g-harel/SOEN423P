@@ -24,7 +24,7 @@ public class Processor implements RequestListener.Processor, Runnable {
     Thread sendinfThread;
 
     private int sequence = 0;
-    private ArrayList<Message> history = new ArrayList<>();
+    private final ArrayList<Message> history = new ArrayList<>();
 
     public Processor() throws SocketException {
         this.socket = new Socket();
@@ -43,7 +43,6 @@ public class Processor implements RequestListener.Processor, Runnable {
 
             // Replay all messages in history.
             try {
-                Socket socket = new Socket();
                 for (Message m : this.history) {
                     // Only the target replica will receive replayed messages.
                     m.setLocation(destination);
@@ -92,7 +91,7 @@ public class Processor implements RequestListener.Processor, Runnable {
                         continue;
                     }
                     
-                    RegisteredReplica currently[] = { RegisteredReplica.ReplicaS3, RegisteredReplica.ReplicaS4 };
+                    RegisteredReplica currently[] = { RegisteredReplica.ReplicaS3 };
                     
                     System.out.println("Sequencer.App.Processor.run() Sendering... " + queue.peek());
                     if (!socket.sendTo( currently, queue.remove(), 5, 750)) {

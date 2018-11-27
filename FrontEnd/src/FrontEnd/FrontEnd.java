@@ -24,7 +24,6 @@
 package FrontEnd;
 
 import Models.AddressBook;
-import Models.Location;
 import UDP.Message;
 import UDP.OperationCode;
 import UDP.Socket;
@@ -37,9 +36,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.net.SocketException;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map;
 
 /**
  *
@@ -53,7 +50,7 @@ public class FrontEnd extends IFrontEndPOA {
 
     public FrontEnd() throws SocketException {
         this.socket = new Socket();
-        requiredAnswersForAgreement = 3;
+        requiredAnswersForAgreement = 1; //3;
         m_RequestListener = new Listener();
         m_RequestListener.launch();
     }
