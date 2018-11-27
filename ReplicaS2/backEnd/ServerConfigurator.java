@@ -20,23 +20,23 @@ public class ServerConfigurator {
 				new Logger("ServerConfigurator", StorageConfig.CENTRAL_REPO_LOCATION);
 	}
 	
-	 void configureCenter(String[] args) {
+	 public void configureCenter() {
 
 		for(Location loc: Location.values()) {
 			//TODO: Refactor this switch
 			switch(loc){
 			case CA:
-				buildCenter(loc, PortConfiguration.getDEFAULT_CA_PORT(), args);
+				buildCenter(loc, PortConfiguration.getDEFAULT_CA_PORT());
 				// Save configuration in an object, in a real server we will save this to a .env file or other
 				PortConfiguration.addConfig(loc, PortConfiguration.getDEFAULT_CA_PORT());
 				break;
 			case US:
-				buildCenter(loc, PortConfiguration.getDEFAULT_US_PORT(), args);
+				buildCenter(loc, PortConfiguration.getDEFAULT_US_PORT());
 				// Save configuration in an object, in a real server we will save this to a .env file or other
 				PortConfiguration.addConfig(loc, PortConfiguration.getDEFAULT_US_PORT());
 				break;
 			case UK:
-				buildCenter(loc, PortConfiguration.getDEFAULT_UK_PORT(), args);
+				buildCenter(loc, PortConfiguration.getDEFAULT_UK_PORT());
 				// Save configuration in an object, in a real server we will save this to a .env file or other
 				PortConfiguration.addConfig(loc, PortConfiguration.getDEFAULT_UK_PORT());
 				break;
@@ -55,7 +55,7 @@ public class ServerConfigurator {
 
 	}
 	
-	private void buildCenter(Location loca, int port, String[] args) {
+	private void buildCenter(Location loca, int port) {
 		
 		// Create and pass a storing engine to the HRAction
 		IStore storingEngine = new Logger(loca.toString(), StorageConfig.MAIN_TREE_FOLDER + loca.toString() + "/");

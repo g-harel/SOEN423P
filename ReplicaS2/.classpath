@@ -4,5 +4,7 @@
 	<classpathentry kind="src" path=""/>
 	<classpathentry kind="lib" path="lib/hamcrest-all-1.3.jar"/>
 	<classpathentry kind="lib" path="lib/junit-4.12.jar"/>
+	<classpathentry kind="src" path="/DEMS-Common"/>
+	<classpathentry kind="src" path="/SOEN423P"/>
 	<classpathentry kind="output" path=""/>
 </classpath>
