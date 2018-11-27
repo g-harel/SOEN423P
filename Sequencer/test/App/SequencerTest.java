@@ -36,6 +36,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import App.Sequencer;
+import Models.RegisteredReplica;
 import java.net.SocketException;
 
 import static org.junit.Assert.*;
@@ -111,6 +112,8 @@ public class SequencerTest implements RequestListener.Processor {
         int seqNumber = Integer.valueOf(response.getData().substring("SEQ=".length()));
         assertNotEquals("SeqNum should be greater the Zero", 0, seqNumber);
 
+        Thread.sleep(2000);
+        
         assertEquals(1, m_ListOfMessages.size());
 
         for (Message msg : m_ListOfMessages) {
@@ -141,13 +144,15 @@ public class SequencerTest implements RequestListener.Processor {
         int seqNumber = Integer.valueOf(response.substring("SEQ=".length()));
         assertNotEquals("SeqNum should be greater the Zero", 0, seqNumber);
 
-        assertEquals(m_ListOfMessages.size(), forward.length);
+        Thread.sleep(2000);
+        
+        assertEquals(forward.length, m_ListOfMessages.size());
 
         m_ListOfMessages.clear();
         // TO DO: Evaluate what the ordering should be of the recieved messages =?
 
         Socket managerMock = new Socket();
-        Message seqResendCommand = new Message ( OperationCode.REPLAY, 0, "RETRANSMIT THE WHOLE WORLD !", AddressBook.SEQUENCER );
+        Message seqResendCommand = new Message ( OperationCode.REPLAY, 0, RegisteredReplica.ReplicaS1.toString(), AddressBook.SEQUENCER );
 
         assertTrue("Seq should ACK request", managerMock.send(seqResendCommand, 5, 500));
 

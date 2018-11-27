@@ -21,13 +21,18 @@ public class Processor implements RequestListener.Processor, Runnable {
     final PriorityQueue<Message> queue;
     final Semaphore sem;
 
+    Thread sendinfThread;
+
     private int sequence = 0;
     private ArrayList<Message> history = new ArrayList<>();
 
     public Processor() throws SocketException {
         this.socket = new Socket();
         queue = new PriorityQueue<>();
-        sem = new Semaphore(1000);
+        sem = new Semaphore(0);
+
+        sendinfThread = new Thread(this);
+        sendinfThread.start();
     }
 
     @Override
@@ -72,6 +77,7 @@ public class Processor implements RequestListener.Processor, Runnable {
 
     @Override
     public void run() {
+        System.out.println("``available Semaphore permits now: "  + sem.availablePermits());
         while (running) {
             try {
                 sem.acquire();
@@ -82,6 +88,7 @@ public class Processor implements RequestListener.Processor, Runnable {
 
             synchronized (queue) {
                 try {
+                    System.out.println("Sequencer.App.Processor.run() Sendering... " + queue.peek());
                     if (!socket.send(queue.remove(), 5, 750)) {
                         throw new Exception();
                     }
