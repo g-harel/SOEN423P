@@ -92,7 +92,7 @@ public class ConsensusTracker {
         return currentAswer;
     }
 
-    LinkedList<RegisteredReplica> getFailures() {
+    public LinkedList<RegisteredReplica> getFailures() {
         return inError;
     }
 }

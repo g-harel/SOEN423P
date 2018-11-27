@@ -140,22 +140,22 @@ public class FrontEnd extends IFrontEndPOA {
         } catch (Exception ex) {
             return ex.getMessage();
         }
-        
+
         int seqNumber = Integer.valueOf(socket.getResponse().getData().substring("SEQ=".length()));
 
-        ConsensusTracker tracker = new ConsensusTracker( 3 , seqNumber );
-        
+        ConsensusTracker tracker = new ConsensusTracker(3, seqNumber);
+
         m_RequestListener.setTracker(tracker);
-        
+
         try {
             tracker.Wait();
         } catch (InterruptedException ex) {
             return "Error: could not obtain answer";
         }
-        
+
         m_RequestListener.setTracker(null);
-        
-        validateIfFailures(tracker);
+
+        processesFailures(tracker);
 
         return tracker.getAnswer();
     }
@@ -278,16 +278,27 @@ public class FrontEnd extends IFrontEndPOA {
         }
     }
 
-    private void validateIfFailures(ConsensusTracker tracker) {
-        LinkedList<RegisteredReplica> inError = new LinkedList<>();
-        for (RegisteredReplica instance : RegisteredReplica.values() ){
-            if ( ! tracker.contains(instance) ) {
-                inError.add(instance);
-            } else {
-                
-            }
+    private void processesFailures(ConsensusTracker tracker) {
+        processesFailuresBadResponses(tracker);
+    }
+    
+    private void processesFailuresBadResponses(ConsensusTracker tracker) {
+        LinkedList<RegisteredReplica> inError = tracker.getFailures();
+
+        RegisteredReplica errors[] = new RegisteredReplica[inError.size()];
+        errors = inError.toArray(errors);
+
+        Message notice = null;
+        try {
+            notice = new Message(OperationCode.ACK_FAULY_RESP_NOTIFICATION, 0, "Your replica Errored!", AddressBook.MANAGER);
+        } catch (Exception ex) {
+            // This is impossible
         }
-        
-        
+
+        try {
+            socket.sendTo(errors, notice, 10, 1000);
+        } catch (Exception ex) {
+            System.out.println("Unable to notify Replica Manager of failure due to " + ex.getMessage());
+        }
     }
 }
