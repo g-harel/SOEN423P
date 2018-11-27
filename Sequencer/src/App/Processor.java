@@ -88,9 +88,13 @@ public class Processor implements RequestListener.Processor, Runnable {
 
             synchronized (queue) {
                 try {
+                    if( queue.peek() == null){
+                        continue;
+                    }
+                    
                     System.out.println("Sequencer.App.Processor.run() Sendering... " + queue.peek());
                     if (!socket.send(queue.remove(), 5, 750)) {
-                        throw new Exception();
+                        throw new Exception("No answer form the Replica Manager");
                     }
                 } catch (Exception ex) {
                     System.out.println("Unable to use socket to send " + ex.getMessage());
