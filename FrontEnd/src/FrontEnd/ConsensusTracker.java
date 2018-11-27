@@ -39,7 +39,7 @@ public class ConsensusTracker {
 
     public ConsensusTracker(int consensusCountNeeded, int sequenceID) {
         this.answers = new HashMap<>();
-        complete = new Semaphore(consensusCountNeeded);
+        complete = new Semaphore(0-consensusCountNeeded);
         sequenceNumber = sequenceID;
     }
 
