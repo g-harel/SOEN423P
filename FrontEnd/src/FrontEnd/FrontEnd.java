@@ -57,7 +57,8 @@ public class FrontEnd extends IFrontEndPOA {
 
     @Override
     public String createMRecord(String managerID, String firstName, String lastName, int employeeID, String mailID, Project project, String location) {
-        ClientRequest request = setupClientRequest(managerID);
+        String mangerPrefix = managerID.substring(0, 2);
+        ClientRequest request = new ClientRequest("createMRecord", mangerPrefix);
 
         request.addRequestDataEntry("managerID", managerID);
         request.addRequestDataEntry("firstName", firstName);
@@ -77,7 +78,8 @@ public class FrontEnd extends IFrontEndPOA {
 
     @Override
     public String createERecord(String managerID, String firstName, String lastName, int employeeID, String mailID, String projectID) {
-        ClientRequest request = setupClientRequest(managerID);
+        String mangerPrefix = managerID.substring(0, 2);
+        ClientRequest request = new ClientRequest("createERecord", mangerPrefix);
 
         request.addRequestDataEntry("managerID", managerID);
         request.addRequestDataEntry("firstName", firstName);
@@ -96,7 +98,8 @@ public class FrontEnd extends IFrontEndPOA {
 
     @Override
     public String getRecordCounts(String managerID) {
-        ClientRequest request = setupClientRequest(managerID);
+        String mangerPrefix = managerID.substring(0, 2);
+        ClientRequest request = new ClientRequest("getRecordCounts", mangerPrefix);
 
         try {
             sendRequestToSequencer(OperationCode.GET_RECORD_COUNT, request);
@@ -109,7 +112,8 @@ public class FrontEnd extends IFrontEndPOA {
 
     @Override
     public String editRecord(String managerID, String recordID, String fieldName, String newValue) {
-        ClientRequest request = setupClientRequest(managerID);
+        String mangerPrefix = managerID.substring(0, 2);
+        ClientRequest request = new ClientRequest("editRecord", mangerPrefix);
 
         request.addRequestDataEntry("managerID", managerID);
         request.addRequestDataEntry("recordID", recordID);
@@ -127,7 +131,8 @@ public class FrontEnd extends IFrontEndPOA {
 
     @Override
     public String transferRecord(String managerID, String recordID, String location) {
-        ClientRequest request = setupClientRequest(managerID);
+        String mangerPrefix = managerID.substring(0, 2);
+        ClientRequest request = new ClientRequest("transferRecord", mangerPrefix);
 
         request.addRequestDataEntry("managerID", managerID);
         request.addRequestDataEntry("recordID", recordID);
@@ -150,13 +155,6 @@ public class FrontEnd extends IFrontEndPOA {
     @Override
     public void replicaCrash(String managerID) {
         requiredAnswersForAgreement--;
-    }
-
-    private ClientRequest setupClientRequest(String managerID) {
-        String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
-        String location = managerID.substring(0, 2);
-
-        return new ClientRequest(methodName, location);
     }
 
     private void sendRequestToSequencer(OperationCode method, ClientRequest clientRequest) throws Exception {

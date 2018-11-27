@@ -48,7 +48,7 @@ public class ClientRequest implements Serializable {
 	}
 
 	public String getLocation() {
-		return location.toString();
+		return location;
 	}
 
 	public void setLocation(String location) {
