@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
 
 public class ConsensusTracker {
-   
 
     final private HashMap<RegisteredReplica, String> answers;
     final private int sequenceNumber;
@@ -43,26 +42,38 @@ public class ConsensusTracker {
             }
             index++;
         }
-        
+
         int max = 0;
-        for( int i = 0; i < answers.size(); i++){
-            if( max < counter[i]){
+        for (int i = 0; i < answers.size(); i++) {
+            if (max < counter[i]) {
                 max = counter[i];
             }
         }
-        
+
         int ticker = 0;
         for (String potential : answers.values()) {
-            if( max == counter[ticker]){
-                
-                currentAswer = potential;
+            if (max == counter[ticker]) {
+                if (!currentAswer.equals(potential)) {
+
+                    for (RegisteredReplica suspect : RegisteredReplica.values()) {
+
+                        if (answers.containsKey(suspect) && answers.get(suspect).equals(currentAswer)) {
+                            inError.add(suspect);
+                        }
+                    }
+                    currentAswer = potential;
+                }
+
                 break;
             }
-            
+
             ticker++;
-            
         }
 
+        if (answers.size() > 2
+                && !answer.equals(currentAswer)) {
+            inError.add(replica);
+        }
     }
 
     /**
@@ -75,5 +86,13 @@ public class ConsensusTracker {
 
     public boolean contains(RegisteredReplica instance) {
         return answers.containsKey(instance);
+    }
+
+    public String getAnswer() {
+        return currentAswer;
+    }
+
+    LinkedList<RegisteredReplica> getFailures() {
+        return inError;
     }
 }
